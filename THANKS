@@ -1,0 +1,7 @@
+This would not be possible without mawk from Mike Brennan who did all the hard work.
+
+The gcc port used is from https://github.com/jmeubank/tdm-gcc  which was created by J.M. Eubank
+The Dev-C++ ide used is from http://orwelldevcpp.blogspot.com/ , it was originally created by Colin Laplace and the version used is by Orwell (Johan Mes).
+John MacFarlane for creating pandoc which allowed the manual to be edited in Word while creating pdf and ".1" (Unix man format) versions.
+ 
+

@@ -1,0 +1,4 @@
+The wmawk2.exe file is a 64 bit windows portable program which does not need installation.
+You can either copy it to a directory of your choice (and add this to your PATH) or run it from removable media like a USB stick.
+For more information please consult the manual in the man directory.
+
