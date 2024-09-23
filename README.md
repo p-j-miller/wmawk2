@@ -16,3 +16,7 @@ wmawk2 has been heavily used and has been periodically checked against other ver
 The wmawk2.dev file is a project file for the dev-c++ ide which is the simplest way to recompile wmawk2.
 
 Please read the manual in the man directory which has been updated for this version and includes more information on installation and use.
+## VERSIONS
+Version 1.0 was the first public release. This was compiled with TDM-GCC 9.2.0, and uses MSVCRT as runtime library, which is available on all versions of Windows (but may need to be downloaded separately from Microsoft).
+
+Version 1.1 was compiled using GCC 14.1.0 x64 (using the UCRT runtime) for Windows. The UCRT is effectively built into the operating system in Windows 10 and 11 and can be installed on earlier versions of Windows (see https://support.microsoft.com/en-gb/topic/update-for-universal-c-runtime-in-windows-c0514201-7fe6-95a3-b0a5-287930f3560c ). Some buffer sizes were also optimized for file i/o, and an internal random number generator is now used which is “more random” than the one used previously. There was no change in user functionality with 1v1, but the execution times for test programs may have changed (in some cases becoming faster).
