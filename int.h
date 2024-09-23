@@ -33,7 +33,7 @@ extern const int have_long64 ;
 #define LONG64    1
 #define LDFMT   "%ld"
 #elif LONG_MAX == 0x7fffffffL
-#define LONG32    1
+// #define LONG32    1
 #ifdef __STDC_VERSION__ /* if using c99 or above */
 #define LDFMT   "%"PRId64 
 #else

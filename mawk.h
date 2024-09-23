@@ -33,13 +33,15 @@ typedef int Bool ;
 #include <errno.h>
 #include "types.h"
 
+#include "unicode.h" /* PJM - utf-8 unicode support for Windows using mingw gcc compiler */
+
 #ifdef   DEBUG
 #define  YYDEBUG  1
 extern  int   yydebug ;  /* print parse if on */
 extern  int   dump_RE ;
 #endif
 
-extern  int  posix_space_flag , interactive_flag ;
+extern  int  posix_space_flag , interactive_flag , traditional_flag;
 extern  int  posix_repl_scan_flag ;
 
 /*----------------

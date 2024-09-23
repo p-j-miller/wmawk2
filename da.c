@@ -464,7 +464,7 @@ find_bi_name(PF_CP p)
    BI_REC *q ;
    int i ;
 
-   for (q = bi_funct; q->name; q++)
+   for (q = (traditional_flag? bi_funct_trad:bi_funct_new); q->name; q++)
    {
       if (q->fp == p)
       {

@@ -33,6 +33,10 @@ you agree to not name that product mawk.
 #include <sys/wait.h>
 #endif
 
+#if defined(MAWK_SYSTIME ) && (defined(_WIN32) || defined(_WIN64) )
+#include  "Windows.h" 
+#endif
+
 #if defined(__cplusplus)
 #define THROW__ throw()
 #else
@@ -48,7 +52,28 @@ extern void srandom (unsigned int __seed) THROW__;
 #endif
 
 /* global for the disassembler */
-BI_REC bi_funct[] =  {  /* info to load builtins */
+/* now have 2 tables, one for "traditional" and one for "new" - this means I can be less worried about breaking existing programs when adding new things */
+BI_REC bi_funct_trad[] =  {  /* info to load builtins - traditional (original mawk2) */
+   { "index", bi_index, 2, 2 },
+   { "substr", bi_substr, 2, 3 },
+   { "sin", bi_sin, 1, 1 },
+   { "cos", bi_cos, 1, 1 },
+   { "atan2", bi_atan2, 2, 2 },
+   { "exp", bi_exp, 1, 1 },
+   { "log", bi_log, 1, 1 },
+   { "int", bi_int, 1, 1 },
+   { "sqrt", bi_sqrt, 1, 1 },
+   { "rand", bi_rand, 0, 0 },
+   { "srand", bi_srand, 0, 1 },
+   { "close", bi_close, 1, 1 },
+   { "system", bi_system, 1, 1 },
+   { "toupper", bi_toupper, 1, 1 },
+   { "tolower", bi_tolower, 1, 1 },
+   { "fflush", bi_fflush, 0, 1 },
+   {0,0,0,0}
+} ;
+
+BI_REC bi_funct_new[] =  {  /* info to load builtins - latest version with various additions */
    { "index", bi_index, 2, 2 },
    { "substr", bi_substr, 2, 3 },
    { "sin", bi_sin, 1, 1 },
@@ -66,7 +91,7 @@ BI_REC bi_funct[] =  {  /* info to load builtins */
    { "tolower", bi_tolower, 1, 1 },
    { "fflush", bi_fflush, 0, 1 },
 #ifdef MAWK_SYSTIME 
-   { "systime", bi_systime, 0, 0 }, /* same as in mawk 1.3.4 returns seconds since epoch */
+   { "systime", bi_systime, 0, 1 }, /* same as in mawk 1.3.4 returns seconds since epoch - this version for 1v2 allows an optional argument */
 #endif   
    {0,0,0,0}
 } ;
@@ -93,8 +118,7 @@ bi_funct_init(void)
 {
    register BI_REC *p ;
    register SYMTAB *stp ;
-
-   for (p = bi_funct ; p->name; p++)
+   for (p = (traditional_flag? bi_funct_trad:bi_funct_new) ; p->name; p++)
    {
       stp = insert(p->name) ;
       stp->type = ST_BUILTIN ;
@@ -526,7 +550,7 @@ bi_srand(CELL *sp)
 	 * fractional bits should be quite random */
 	struct timeval tv;
 	char buffer[128];
-	gettimeofday(&tv, 0);
+	gettimeofday(&tv, NULL);
 	sprintf(buffer, "#srand%ld.%ld#", (long) tv.tv_sec, (long) tv.tv_usec);
 	sp->type = C_STRING;
 	sp->ptr = new_STRING(buffer);
@@ -577,16 +601,79 @@ bi_rand(CELL *sp)
 }
 
 #ifdef MAWK_SYSTIME 
+#if 1 /* this version for 1v2 supports an optional argyment - if no arguments supplied return integer secs since epoc as previoulsy */
+CELL *
+bi_systime(CELL *sp)
+{
+	int nargs = sp->type;
+	if (nargs == 0) 
+		{/* no arguments supplied, return time as an integer as we did previoulsy */
+    	 sp->type = C_DOUBLE;
+    	 sp->dval = (double)time(NULL);/* Note time returns a 64 bit number so casting to a double may loose resolution. 
+								     In April 2020 [50 years after epoch of 1970-01-0100:00:00 UTC ] it was only 1586616274, so this will not happen for a LONG time  */
+		 return sp ;
+		}
+	else 
+		{--sp; /* adjust stack for argument */
+		}
+	/* user has provided an argument - get it as an integer */
+	if (sp->type != C_DOUBLE)  cast1_to_d(sp) ; /* make argument a number , its value is in sp->dval */
+	int time_type = d_to_int(sp->dval);
+
+	if(time_type==0)
+		{ /* want UTC time - to high resolution (1us here) */
+		 struct timeval tv;
+		 gettimeofday(&tv, NULL);
+		 sp->type = C_DOUBLE; /* should not be needed , as should already be a double */
+		 sp->dval=(double)tv.tv_sec+(double)(tv.tv_usec)/1e6; /* 1us resolution */
+		 return sp;
+		}
+	else /*if(time_type==1) */
+	   { /* want local time - to high resolution (1us for Windows) */
+#if 0 && (defined(_WIN32) || defined(_WIN64))  /* for windows - this was the simplest solution I found that works, but it only gives 1ms resolution*/
+		SYSTEMTIME st;
+		struct tm tmv;	
+		GetLocalTime(&st);
+		tmv.tm_sec = st.wSecond;
+		tmv.tm_min = st.wMinute;
+		tmv.tm_hour = st.wHour;
+		tmv.tm_mday = st.wDay;
+		tmv.tm_mon = st.wMonth - 1;
+		tmv.tm_year = st.wYear - 1900;
+		tmv.tm_isdst = 0;	
+		sp->type = C_DOUBLE; /* should not be needed ! */
+	    sp->dval=(double)mktime(&tmv) + (double)(st.wMilliseconds)/1000.0; /* gives 1ms resolution */   
+	    return sp ;		 
+#else /* this might work on linux as well and gives 1us resolution */	
+		time_t ti;
+		struct tm* tm_p;	 
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+		ti=tv.tv_sec; /* this has type time_t */
+		tm_p=localtime(&ti);/* there is no "race" here as we always use the time returned by a single call to gettimeofday() */
+		sp->type = C_DOUBLE; /* should not be needed , as should already be a double */
+#if 1
+		tm_p->tm_isdst = 0; /* want local time */
+		sp->dval=(double)mktime(tm_p)+(double)(tv.tv_usec)/1e6; /* 1us resolution */
+#else
+		sp->dval=(double)tv.tv_sec+(double)(tv.tv_usec)/1e6+(double)tm_p1->tm_gmtoff; /* 1us resolution, tm_gmtoff only exists on linux */
+#endif		
+		return sp;
+#endif		 
+		}
+}    
+#else
 /* systime() returns number of seconds since epoch as per mawk 1.3.4 and gawk */
 CELL *
 bi_systime(CELL *sp)
 {
     sp++;
-    sp->type = C_DOUBLE;
+    sp->type = C_DOUBLE; 
     sp->dval = (double)time(NULL);/* Note time returns a 64 bit number so casting to a double may loose resolution. 
-								     In April 2020 [50 years after epoch of 1970-01-0100:00:00 UTC ] it was only 1586616274, so this will not happen for a LONG time  */
+								     In April 2020 [50 years after epoch of 1970-01-0100:00:00 UTC ] it was only 1586616274, so this will not happen for a LONG time  */								     
     return sp ;
 }
+#endif
 #endif
 /*************************************************
  miscellaneous builtins

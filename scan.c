@@ -30,7 +30,7 @@ you agree to not name that product mawk.
 #include  <fcntl.h>
 
 #include  "files.h"
-
+#include <ctype.h>
 
 /* static functions */
 static void  scan_fillbuff(void) ;
@@ -39,6 +39,7 @@ static int  slow_next(void) ;
 static void  eat_comment(void) ;
 static void  eat_semi_colon(void) ;
 static double  collect_decimal(int, int *) ;
+static double  collect_number(int, int *) ;
 static int  collect_string(void) ;
 static int  collect_RE(void) ;
 
@@ -570,8 +571,11 @@ reswitch:
 	    int flag ;
 	    static double double_zero = 0.0 ;
 	    static double double_one = 1.0 ;
-
-	    if ((d = collect_decimal(c, &flag)) == 0.0)
+#ifdef MAWK_HEX_CONSTANTS
+	    if ((d = collect_number(c, &flag)) == 0.0) /* colect_number allows hex constants */
+#else
+		if ((d = collect_decimal(c, &flag)) == 0.0) /* colect_decimal only allows decimal numbers  */
+#endif
 	    {
 	       if (flag)  ct_ret(flag) ;
 	       else  yylval.ptr = (PTR) & double_zero ;
@@ -802,6 +806,113 @@ collect_decimal(int c, int* flag)
    }
    return d ;
 }
+
+#ifdef MAWK_HEX_CONSTANTS
+/* like collect_decimal above, but also allows hex constants starting 0x or 0X */
+static int peek_next() /* returns next char in buffer without actually reading it */
+{int ch=next();
+ un_next();
+ return ch;
+}
+
+static double
+collect_number(int c, int* flag)
+{
+   register unsigned char *p = (unsigned char *) string_buff + 1 ;
+   unsigned char *endp ;
+   double d;
+
+   *flag = 0 ;
+   string_buff[0] = c ;
+
+   if (c == '.')
+   {
+      if (scan_code[*p++ = next()] != SC_DIGIT)
+      {
+	   *flag = UNEXPECTED ;
+	   yylval.ival = '.' ;
+	   return 0.0 ;
+      }
+   }
+   else if(c=='0' && (peek_next()=='x' || peek_next()=='X'))
+   	{ /* we have a hex constant */
+   	 int xchar=next(); /* skip x */
+   	 if(!isxdigit(peek_next()))
+   	 	{/* 0x must be followed by a valid hex digit */
+   	 	 *flag = UNEXPECTED ;
+	 	  yylval.ival = xchar ; /* x or X */
+	 	  return 0.0 ;
+	 	}
+   	 while(isxdigit(*p++ = next())); /* read in hex digits */
+   	 un_next() ; /* we read 1 character past end of hex digits */
+	 *--p = 0 ;/* null terminate string */
+	 /* now convert hex characters in string_buff[] to a number [ note string_buff[0] always starts with a 0 but that does not matter!] */
+	 d=0;
+	 for(char *p1=string_buff + 1;*p1;++p1) /* char * as isdigit etc expect char */
+	 	{if(isdigit(*p1)) d=d*16.0+(*p1-'0');/* 0-9 */
+	 	 else d=d*16.0+(tolower(*p1)-'a'+10); /* a-f => 10-15 */
+	 	}
+	 return d ;
+   	}
+   else
+   {
+      while (scan_code[*p++ = next()] == SC_DIGIT) ;
+      if (p[-1] != '.')
+      {
+	   un_next() ;
+	   p-- ;
+      }
+   }
+   /* get rest of digits after decimal point */
+   while (scan_code[*p++ = next()] == SC_DIGIT) ;
+
+   /* check for exponent */
+   if (p[-1] != 'e' && p[-1] != 'E')
+   {
+      un_next() ;
+      *--p = 0 ;
+   }
+   else	 /* get the exponent */
+   {
+      if (scan_code[*p = next()] != SC_DIGIT &&
+	  *p != '-' && *p != '+')
+      {
+	   *++p = 0 ;
+	   *flag = BAD_DECIMAL ;
+	   return 0.0 ;
+      }
+      else  /* get the rest of the exponent */
+      {
+	   p++ ;
+	   while (scan_code[*p++ = next()] == SC_DIGIT) ;
+	   un_next() ;
+	   *--p = 0 ;
+      }
+   }
+
+   errno = 0 ;			 /* check for overflow/underflow */
+#ifdef USE_FAST_STRTOD 
+   d = fast_strtod(string_buff, (char **) &endp) ;
+#else   
+   d = strtod(string_buff, (char **) &endp) ;
+#endif
+#ifndef	 STRTOD_UNDERFLOW_ON_ZERO_BUG
+   if (errno)  compile_error("%s : decimal %sflow", string_buff,
+		    d == 0.0 ? "under" : "over") ;
+#else /* ! sun4 bug */
+   if (errno && d != 0.0)
+      compile_error("%s : decimal overflow", string_buff) ;
+#endif
+
+   if (endp < p)
+   {
+      *flag = BAD_DECIMAL ;
+      return 0.0 ;
+   }
+   return d ;
+}
+#endif
+
 
 /*----------  process escape characters ---------------*/
 

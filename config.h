@@ -2,36 +2,30 @@
   Manually edited by Peter Miller 
   version 1.0 - for TDM-Gcc 9.2.0 x64 on windows 10
   version 1.1 - for GCC 14.1.0 x64 (using ucrt runtime) on Windows, only other changes were to use an internal random number generator (USE_INTERNAL_RNG) and some buffer sizes.
-			  - on a few simple tests version 1.1 was between 1.2 and 3.2* the speed of version 1.0 
-			  - tests were
-				- wmawk2 "BEGIN{for(i=0;i<100000000;++i)s+=0.5; print s/100000000}"
-					went from 7.08 secs in v1.0 to 3.05 secs in v1.1 (*2.3)
-				- wmawk2 "BEGIN{for(i=0;i<100000000;++i)s+=rand(); print s/100000000}"
-					went from 9.5 to 3.31 secs (*2.9)
-				- wmawk2 "BEGIN{for(i=0;i<1000000;++i)s=s \"z\";print length(s)}"
-					went from 41.55 to 13.44 secs (*3.1)
-				- wmawk2 "BEGIN{for(i=0;i<1000000;++i)s=s \"z\";print gsub(/z/,\"a\",s)}"
-					went from 42.11 to 13.21 secs (*3.2)
-			 - it also adds a FILEBUFSIZE #define to set the filebuffer size:
-				- wmawk2 "END{print NR}" C:\PMi\csv-files\csvfunbig.csv should give 579486318 (csvfunbig.csv is 12,267,217,518 bytes)
-					went from 1:14.94 in 1.0 to 1:01.88 with FILEBUFSIZE not defined,  0:47.70 with FILEBUFSIZE=8192 (which seemed to be the optimum on the system tested which has an SSD).
-				- wmawk2 "END{print NR}" <C:\PMi\csv-files\csvfunbig.csv
-					went from 1:13.50 with 1v0 to 47.53 with 1v1 (1.5*)
-				- wmawk2 "{print $0 >\"out\"}" C:\PMi\csv-files\csvfunbig.csv
-				    went from 3:24.50 to 2:31.40 (1.34*)
-				- wmawk2 "{print $0}" C:\PMi\csv-files\csvfunbig.csv >out
-					went from 3:14.60 to 2:43.11 (*1.2)
+						
 			- and it adds #define FILEBUFSIZE_INTERACTIVE  (set to 32768) which sets the maximum interactive (editable during entry - typically stdin) line length.
-			  note <control>-Z on a line by itself gives EOF on an interactive input (<control>-Z at some other point in a line does not create an EOF).
+			  note <control>-Z on a line by itself (followed by ENTER) gives EOF on an interactive input (<control>-Z at some other point in a line does not create an EOF).
 				- while all other buffers grow as required this one is fixed (its implemented by the compilers stdio library) 32768 is the largest value for other windows programs I found.
-
+				uft8 support means 32768 becomes 8192 utf8 characters maximum.
+				
+  version 2.0 - added unicode (utf8) support for command line, environment variables, filenames and system/pipe commands (unicode.c)	
+		You cannot use utf8 characters as awk variable, array or function names.		
+		Changing this more detailed behaviour would break awk programs that expect a string of bytes
+		
+	- improved memory allocator (better reuse of existing memory, larger allocations from main memory) - the net result is faster and may use less system memory.
+	-  added hex constants (0x.... or 0X...) in scripts
+	- use of ya_printf() to get faster output that does not rely on compiler printf
+	- systime(0) and systime(1) added to get 1us resolution and UTC or localtime. systime() behaves as it always did for backwards compatibility.
+	
  */
-#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 1.1 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
+#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.0 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
 
 
 #define USE_FAST_STRTOD /* if defined use fast strtod rather than very slow version built into TDM-GCC */
 
 #define MAWK_SYSTIME /* if defined add systime() function that returns seconds since epoch as per mawk 1.3.4 and gawk - but this is an extension not defined in POSIX awk ) */
+
+#define MAWK_HEX_CONSTANTS /* if defined allow hex constants is 0x9abcd123, note if this is NOT defined this would be the string concatitation of 0 and the variable x9abcd123 (by default "") giving "0" which is probably not what was intended! */
 
 #ifdef USE_FAST_STRTOD 
 double fast_strtod(const char *s,char ** endptr); /* in atof.c */
@@ -45,7 +39,7 @@ double fast_strtod(const char *s,char ** endptr); /* in atof.c */
    don't. */
 #define HAVE_DECL_SRANDOM 1
 
-/* if USE_INTERNAL_RNG is defined then use an internal Random number generator - note this version uses a different generator to that in the original mawk2 code */
+/* if USE_INTERNAL_RNG is defined then use an internal Random number generator - note this version uses a different random number generator to that in the original mawk2 code */
 #define USE_INTERNAL_RNG
 
 /* Define to 1 if the system has the type `int64_t'. */

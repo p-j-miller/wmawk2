@@ -34,13 +34,16 @@ print_version(void)
    printf(version_string, PATCH_STRING, DATE_STRING) ;
 #ifdef MAWK_EXTRA_VERSION_INFO
 	printf("%s.\nCompiled on %s at %s\n",MAWK_EXTRA_VERSION_INFO,__DATE__,__TIME__); /* announce this version has some modifications by Peter Miller */
+#endif	
 #ifdef USE_FAST_STRTOD 
 	printf(" Built using fast_strtod()\n");
 #endif	
 #ifdef MAWK_SYSTIME 
 	printf(" Built to include systime() function\n");
 #endif	
-
+#ifdef MAWK_HEX_CONSTANTS
+	printf(" Built to allow hex constants like 0xabc123F or 0XaBc123\n");
+#endif
 #ifdef USE_INTERNAL_RNG /* if not defined uses rand() and srand() from stdlib - the internal one is in rand.c which has a period of 2^127 */
  #include "rand.h" /* needed as this changes RAND_MAX */
 	printf(" Built to use internal random number generator (not stdlib one) with RAND_MAX=%u\n",RAND_MAX);
@@ -50,21 +53,24 @@ print_version(void)
 #ifdef FILEBUFSIZE
 	printf(" Built to use file buffers of size %u bytes\n",FILEBUFSIZE);
 #endif
+#ifdef __UNICODE_H
+ 	printf(" Built with Unicode (utf8) support enabled for command line, environment variables, filenames and system/pipe commands\n");
+#endif 
 #if defined(__VERSION__) && defined( __GNUC__)
     printf(" Compiled with gnuc version %s ",__VERSION__);
 #ifdef __MINGW64__
-	printf(" for Mingw64 ");
+	printf(" for Mingw64\n");
 #elif define __MINGW32__
-	printf(" for Mingw32 ");
+	printf(" for Mingw32\n");
 #endif
   // _WIN32, _WIN64 and __MSVCRT__ are also defined by gcc */			
-#endif    
+#endif   
+
 #if 0
 	// check LDFMT is set OK and see how doubles are printed 
 	printf("Test of using LDFMT (%s) to print int64_t: 1=" LDFMT ", -1=" LDFMT ", 12345678901234567=" LDFMT "\n", LDFMT,(int64_t)1,(int64_t)-1,(int64_t)12345678901234567);
 	printf("Test of double output format: 1.234=%g 1.234e-10=%g 1.234e10=%g\n",1.234,1.234e-10,1.234e10);
 #endif
-#endif	   
    exit(0) ;
 }
 

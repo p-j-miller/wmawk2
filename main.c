@@ -30,9 +30,11 @@ int exit_code ;
 int _dowildcard =-1;  /* for MINGW runtime - force command line expansion as this is not done by the windows cmd.exe shell. */
 #endif
 
+char **umain_environ ;/* used by load_environ() in init.c, set by umain() in this file */
+
 int
-main(int argc, char **argv)
-{
+ umain(int argc, char **argv,char **envp) 
+{ umain_environ=envp;/* make environment variables global */
 /* set buffering for stdin if needed */
 #ifdef FILEBUFSIZE_INTERACTIVE  /* PJM - new constant in sizes.h - sets bigger buffer for interactive file input, this will also be used if stdin is redirected */
    if( _isatty( _fileno( stdin ) ) )

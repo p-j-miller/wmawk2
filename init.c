@@ -46,6 +46,7 @@ void  reargv(int *, char ***) ;
 
 const char *progname ;
 int interactive_flag = 0 ;
+int traditional_flag = 0 ; /* set to 1 by -W traditional */
 
 #ifndef	 SET_PROGNAME
 #define	 SET_PROGNAME() \
@@ -69,11 +70,13 @@ initialize(int argc, char** argv)
    SET_PROGNAME() ;
 
    buffer_init() ;
+
+#if 0 /* now has to be done after we have processed command line as may set traditional_flag */
    bi_vars_init() ;		 /* load the builtin variables */
    bi_funct_init() ;		 /* load the builtin functions */
    kw_init() ;			 /* load the keywords */
    field_init() ;
-
+#endif
 #if   MSDOS
    {
       char *p = getenv("MAWKBINMODE") ;
@@ -219,7 +222,11 @@ process_cmdline(int argc, char** argv)
 	       interactive_flag = 1 ;
 	       setbuf(stdout,(char*)0) ;
 	    }
-	    else  errmsg(0, "vacuous option: -W %s", optarg) ;
+	    else if (optarg[0] == 'T') /* added 15-9-2024 PJM */
+	    {  
+	       traditional_flag = 1 ;
+	    }	    
+	    else  errmsg(0, "unknown option: -W %s", optarg) ;
 
 
 	    break ;
@@ -266,7 +273,11 @@ process_cmdline(int argc, char** argv)
    }
 
  no_more_opts:
-
+   /* now do initialisations that may have been impacted by command line arguments - in particular -W traditional */
+   bi_vars_init() ;		 /* load the builtin variables */
+   bi_funct_init() ;		 /* load the builtin functions */
+   kw_init() ;			 /* load the keywords */
+   field_init() ;
    tail->link = (PFILE *) 0 ;
    pfile_list = dummy.link ;
 
@@ -332,10 +343,8 @@ void
 load_environ(ARRAY ENV)
 {
    CELL c ;
-#if !(defined(_WIN32) || defined(_WIN64) ) /* this removes a gcc 14.1 warning under when compiling under Windows */
-   extern char **environ ;
-#endif
-   register char **p = environ ; /* walks environ */
+   extern char **umain_environ ;/* defined in main.c */
+   register char **p = umain_environ ; /* walks environ */
    char *s ;			 /* looks for the '=' */
    CELL *cp ;			 /* pts at ENV[&c] */
 
@@ -439,6 +448,8 @@ static const char* const help[] = {
 "",
 "\t-W posix       forces mawk not to consider '\\n' to be space and \\\\",
 "\t               is always \\ on the second scan of a replacement string.",
+"",
+"\t-W traditional disables new functions added to original mawk2, e.g. systime().",
 "",
 "\t-W version     displays mawk version and exits 0.",
 "",

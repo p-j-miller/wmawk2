@@ -20,7 +20,8 @@ you agree to not name that product mawk.
 
 #include "symtype.h"
 
-extern BI_REC  bi_funct[] ;
+extern BI_REC  bi_funct_trad[] ;
+extern BI_REC  bi_funct_new[] ;
 
 void  bi_init(void) ;
 
