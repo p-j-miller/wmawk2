@@ -332,7 +332,9 @@ void
 load_environ(ARRAY ENV)
 {
    CELL c ;
+#if !(defined(_WIN32) || defined(_WIN64) ) /* this removes a gcc 14.1 warning under when compiling under Windows */
    extern char **environ ;
+#endif
    register char **p = environ ; /* walks environ */
    char *s ;			 /* looks for the '=' */
    CELL *cp ;			 /* pts at ENV[&c] */

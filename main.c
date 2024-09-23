@@ -33,13 +33,29 @@ int _dowildcard =-1;  /* for MINGW runtime - force command line expansion as thi
 int
 main(int argc, char **argv)
 {
-
+/* set buffering for stdin if needed */
+#ifdef FILEBUFSIZE_INTERACTIVE  /* PJM - new constant in sizes.h - sets bigger buffer for interactive file input, this will also be used if stdin is redirected */
+   if( _isatty( _fileno( stdin ) ) )
+       setvbuf(stdin, NULL,_IOLBF, FILEBUFSIZE_INTERACTIVE);/* set buffer for stdin to size requested, NULL means setvbuf will allocate space for buffer itself */
+ #ifdef FILEBUFSIZE  /* PJM - new constant in sizes.h - sets bigger buffer for file i/o (in this case redirected stdin which may improve performance with i/o bound scripts */
+   else setvbuf(stdin, NULL, _IOFBF, FILEBUFSIZE);/* set buffer to size requested, NULL means setvbuf will allocate space for buffer itself */
+ #endif
+#endif 
+ 
+ /* set buffering for stdout if required */
+ #ifdef FILEBUFSIZE  /* PJM - new constant in sizes.h - sets bigger buffer for file i/o (in this case redirected stdout which may improve performance with i/o bound scripts */
+      if( !_isatty( _fileno( stdout ) ) ) setvbuf(stdout, NULL, _IOFBF, FILEBUFSIZE);/* set buffer to size requested, NULL means setvbuf will allocate space for buffer itself */
+ #endif
+ 
    initialize(argc, argv) ;
 
    parse() ;
 
    mawk_state = EXECUTION ;
-   execute(execution_start, eval_stack - 1, 0) ;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds="
+   execute(execution_start, eval_stack - 1, 0) ; /* eval_stack-1 is correct as always increment sp before push, but GCC 14.1.0 gives a warning here which #programs cause to be ignored */
+#pragma GCC diagnostic pop  	
    /* never returns */
    return 0 ;
 }

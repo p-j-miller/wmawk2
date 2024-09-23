@@ -30,6 +30,8 @@ you agree to not name that product mawk.
    records, FINgets().
 */
 
+#define  K256    (1024*256) 
+
 static char * enlarge_fin_buffer(FIN *) ;
 static void  set_main_to_stdin(void) ;
 int  is_cmdline_assign(char *) ; /* also used by init */ 
@@ -53,9 +55,16 @@ FINdopen(int fd, int main_flag)
       /* interactive, i.e., line buffer this file */
       if (fd == 0)  fin->fp = stdin ;
       else if (!(fin->fp = fdopen(fd, "r")))
-      {
-	 errmsg(errno, "fdopen failed") ; mawk_exit(2) ;
-      }
+      	{
+	     errmsg(errno, "fdopen failed") ; mawk_exit(2) ;
+      	}
+      else
+      	{/* open ok for an interactive input - set buffer size correctly */
+#ifdef FILEBUFSIZE_INTERACTIVE  /* PJM - new constant in sizes.h - sets bigger buffer for interactive file input */
+		/* int setvbuf(FILE *stream, char *buf, int mode, size_t size); */
+	     setvbuf(fin->fp, NULL,_IOLBF, FILEBUFSIZE_INTERACTIVE);/* set buffer to size requested, NULL means setvbuf will allocate space for buffer itself */
+#endif      	  
+      	}
       fin->fd = -1 ;  /* marks it interactive */
    }
    else	 fin->fp = (FILE *) 0 ;
@@ -186,16 +195,50 @@ restart :
 
       if (fin->fd == -1)
       {
-	 /* line buffering */
-	 if (!fgets(fin->buff, BUFFSZ - 1, fin->fp))
-	 {
-	    fin->flags |= EOF_FLAG ;
-	    fin->buff[0] = 0 ;
-	    fin->end = fin->start = fin->buff ;
-	    goto restart ;	 /* might be main_fin */
-	 }
-	 else  /* return this line */
-	 {
+#if 0
+	   /* start with a very small buffer for testing purposes */
+	   fin->buffsz=8;
+	   
+#endif
+	   //fprintf(stderr,"Line buffering input: initial buffer size=%zu\n",fin->buffsz);
+	   /* line buffering */
+	   if (!fgets(fin->buff, (int)(fin->buffsz), fin->fp)) /* fgets reads at most maxchars-1 chars to leave room for terminating 0 */
+		 {
+		    fin->flags |= EOF_FLAG ;
+		    fin->buff[0] = 0 ;
+		    fin->end = fin->start = fin->buff ;
+		    // fprintf(stderr,"Line buffering input: fgets() returns NULL [EOF]\n");
+		    goto restart ;	 /* might be main_fin */
+		 }
+	  else  /* return this line */
+	   {
+#if 1
+		/* this version by PJM grows line length (buffer size) as required (just limited by ram space) */
+		/* note that with windows 10 max line length you can actually type is 4094 characters! */
+	    char* p = fin->buff ;
+	    while (*p != '\n' ) 
+			{if(*p) 
+				{p++ ; /* if not end of string just move onto next character */
+				 continue;
+				}
+			 /* end of string but no \n - grow buffer and read in some more data */
+			 if(feof(fin->fp) || ferror(fin->fp)) break;/* eof or error */
+			 size_t strlen_sofar = p-fin->buff ; /* this is not the same as fin->buffsz due to space for 0 at end of string */
+			 size_t oldsize = fin->buffsz; 
+			 size_t newsize = oldsize < K256 ? 2*oldsize : oldsize + K256 ;
+			 size_t delta = newsize-strlen_sofar ;
+			 //fprintf(stderr,"Line buffering input: growing buffer from %zu to %zu\n",oldsize,newsize);
+			 fin->start = fin->buff = (char *) erealloc(fin->buff, newsize) ;/* expand size of buffer, leaving original contentes intact */
+			 fin->buffsz = newsize ;
+			 //fprintf(stderr,"line buffering input: reading another %zu characters\n",delta);
+			 fgets(fin->buff+strlen_sofar, (int)delta, fin->fp); /* get more of the line - note delta is limited to 256k so as long as ints are >=32 bits this will not overflow */
+			 p=fin->buff; /* start scaning at start of line again */
+			}
+		//fprintf(stderr,"Line buffering input: newline found after %u characters\n",(unsigned)(p - fin->buff));
+	    *p = 0 ; *len_p = p - fin->buff ;
+	    fin->end = fin->start = p ;
+	    return fin->buff ;
+#else
 	    /* TBD fix -- doesn't handle lines bigger than BUFFSZ-1 */
 	    /* low priority */
 	    /* find eol */
@@ -206,7 +249,8 @@ restart :
 	    *p = 0 ; *len_p = p - fin->buff ;
 	    fin->end = fin->start = p ;
 	    return fin->buff ;
-	 }
+#endif
+	   }
       }
       else
       {
@@ -327,7 +371,7 @@ retry:
 }
 
 
-#define  K256    (1024*256)
+
 /* double buffer size up to 256K, then grow by 256K */
 
 static char *

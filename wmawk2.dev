@@ -27,9 +27,9 @@ CommandLine=--version
 Folders=
 IncludeVersionInfo=0
 SupportXPThemes=0
-CompilerSet=16
-CompilerSettings=000k10c0a0100000000000000
-UnitCount=36
+CompilerSet=7
+CompilerSettings=0;0;0;0;0;0;4;2;2;0;1;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0
+UnitCount=37
 
 [VersionInfo]
 Major=1
@@ -402,6 +402,16 @@ BuildCmd=
 
 [Unit19]
 FileName=memory.c
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit37]
+FileName=rand.c
 CompileCpp=0
 Folder=
 Compile=1

@@ -40,6 +40,16 @@ print_version(void)
 #ifdef MAWK_SYSTIME 
 	printf(" Built to include systime() function\n");
 #endif	
+
+#ifdef USE_INTERNAL_RNG /* if not defined uses rand() and srand() from stdlib - the internal one is in rand.c which has a period of 2^127 */
+ #include "rand.h" /* needed as this changes RAND_MAX */
+	printf(" Built to use internal random number generator (not stdlib one) with RAND_MAX=%u\n",RAND_MAX);
+#else
+	printf(" Built to use the stdlib random number generator which has RAND_MAX=%u\n",RAND_MAX);
+#endif
+#ifdef FILEBUFSIZE
+	printf(" Built to use file buffers of size %u bytes\n",FILEBUFSIZE);
+#endif
 #if defined(__VERSION__) && defined( __GNUC__)
     printf(" Compiled with gnuc version %s ",__VERSION__);
 #ifdef __MINGW64__

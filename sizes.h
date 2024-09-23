@@ -18,7 +18,7 @@ you agree to not name that product mawk.
 #ifndef  SIZES_H
 #define  SIZES_H
 
-#define  MAX__INT   0x7fffffff 
+#define  MAX__INT   0x7fffffff /* 32 bits signed */
 
 
 #define EVAL_STACK_SIZE  256	/* initial size , can grow */
@@ -35,7 +35,10 @@ you agree to not name that product mawk.
  */
 #define  SPRINTF_LIMIT	8192
 
-#define  BUFFSZ         4096
+#define  FILEBUFSIZE  	8192 /* PJM - new constant in sizes.h : if defined set the default buffer size for buffered file i/o - should be a power of 2 > BUFSIZ (512) */
+#define FILEBUFSIZE_INTERACTIVE  32768 /* PJM - new constant in sizes.h - if defined sets bigger buffer for interactive file input (if not defined its 4096 for gcc/mingw) */
+									   /* note: this is the longest line length that can be typed (or pasted) in as interactive input allows editing the line before typing <ENTER> */
+#define  BUFFSZ         8192 /* was 4096 increased to 8192 for consistancy (might give slight speed gain when reading longer awk scripts from a file)*/
 #define  FINBUFFSZ      8192
   /* starting buffer size for input files, grows if
      necessary */

@@ -1,26 +1,26 @@
 # Project: wmawk2
-# Makefile created by Dev-C++ 5.11
+# Makefile created by Embarcadero Dev-C++ 6.3
 
 CPP      = g++.exe
 CC       = gcc.exe
 WINDRES  = windres.exe
 RES      = mawk2_private.res
-OBJ      = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o atof.o $(RES)
-LINKOBJ  = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o atof.o $(RES)
-LIBS     = -L"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/lib" -L"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/x86_64-w64-mingw32/lib" -static-libgcc
-INCS     = -I"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/include" -I"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/x86_64-w64-mingw32/include" -I"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/lib/gcc/x86_64-w64-mingw32/9.2.0/include"
-CXXINCS  = -I"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/include" -I"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/x86_64-w64-mingw32/include" -I"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/lib/gcc/x86_64-w64-mingw32/9.2.0/include" -I"C:/mingw-w64-mcf-compilers/tdm-gcc-9-2-0/lib/gcc/x86_64-w64-mingw32/9.2.0/include/c++"
+OBJ      = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o atof.o rand.o $(RES)
+LINKOBJ  = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o atof.o rand.o $(RES)
+LIBS     = -L"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/lib" -L"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/x86_64-w64-mingw32/lib" -static-libgcc -m64
+INCS     = -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/x86_64-w64-mingw32/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include"
+CXXINCS  = -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/x86_64-w64-mingw32/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-14.1.0-mingw-w64ucrt-12.0.0-r3/mingw64/lib/gcc/x86_64-w64-mingw32/14.1.0/include"
 BIN      = wmawk2.exe
-CXXFLAGS = $(CXXINCS) -march=core2 -mtune=native -Ofast -std=c99 -Wall
-CFLAGS   = $(INCS) -march=core2 -mtune=native -Ofast -std=c99 -Wall -DMAWK
-RM       = rm.exe -f
+CXXFLAGS = $(CXXINCS) -Ofast -m64 -std=c99 -Wall
+CFLAGS   = $(INCS) -Ofast -m64 -std=c99 -Wall -DMAWK
+DEL      = C:\Program Files (x86)\Embarcadero\Dev-Cpp\devcpp.exe INTERNAL_DEL
 
 .PHONY: all all-before all-after clean clean-custom
 
 all: all-before $(BIN) all-after
 
 clean: clean-custom
-	${RM} $(OBJ) $(BIN)
+	${DEL} $(OBJ) $(BIN)
 
 $(BIN): $(OBJ)
 	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
@@ -132,6 +132,9 @@ rexp/wait.o: rexp/wait.c
 
 atof.o: atof.c
 	$(CC) -c atof.c -o atof.o $(CFLAGS)
+
+rand.o: rand.c
+	$(CC) -c rand.c -o rand.o $(CFLAGS)
 
 mawk2_private.res: mawk2_private.rc 
 	$(WINDRES) -i mawk2_private.rc --input-format=rc -o mawk2_private.res -O coff 

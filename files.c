@@ -17,7 +17,7 @@ you agree to not name that product mawk.
 /* files.c */
 
 #include <unistd.h>
-
+#include "sizes.h" /* needed for FILEBUFSIZE - alllows user to set a file buffer size which may improve performance with file i/o */
 #include "mawk.h"
 #include "files.h"
 #include "memory.h"
@@ -395,8 +395,14 @@ tfopen(const char* name, const char* mode)
       if (isatty(fileno(retval)))  setbuf(retval, (char *) 0) ;
       else
       {
-#ifdef MSDOS
+#ifdef FILEBUFSIZE  /* PJM - new constant in sizes.h - sets bigger buffer for file i/o which may improve performance with i/o bound scripts */
+		/* note this code is only used for files opened within scripts, "normal" file i/o is done in fin.c which uses open()/read() calls. */
+		/* int setvbuf(FILE *stream, char *buf, int mode, size_t size); */
+	   setvbuf(retval, NULL, _IOFBF, FILEBUFSIZE);/* set buffer to size requested, NULL means setvbuf will allocate space for buffer itself */
+#else
+ #ifdef MSDOS
 	 enlarge_output_buffer(retval) ;
+ #endif
 #endif
       }
    }

@@ -494,47 +494,8 @@ bi_sqrt(CELL* sp)
 }
 
 #ifdef  USE_INTERNAL_RNG
-/* This is the RNG from
- * Park, SK and Miller KW, "Random Number Generators:
-   Good Ones are Hard to Find", CACM, 31, 1192-1201, 1988.
-
-   Note this implemenation requires sizeof(int) == 4.
-   Should use int32_t, but we only use this if random() is
-   missing which means <stdint.h> is missing too.
-
-   In 1993 Park and Miller suggested changing
-   A from 16807 to 48271 which we've done
-*/
-static int seed = 1;
-
-static
-double
-mawk_random(void)
-{
-    static const int M = 0x7fffffff;	/* 2^31-1 */
-    static const int A = 48271;	/* used to be 16807 */
-    static const int Q = 0x7fffffff / 48271;
-    static const int R = 0x7fffffff % 48271;
-
-    int s = seed;
-    s = A * (s % Q) - R * (s / Q);
-    if (s <= 0)
-	s += M;
-    seed = s;
-    return (double) s / (double) M;
-}
-
-static void
-mawk_srand(unsigned int u)
-{
-    u %= 0x7fffffff;
-    if (u == 0) {
-	u = 314159265;
-    }
-    seed = u;
-}
-
-#else /* use rand() and srand() from stdlib */
+ #include "rand.h" /* warning : this changes RAND_MAX , you also need to compile/link rand.c */
+#endif /* else use rand() and srand() from stdlib */
 
 static double
 mawk_random(void)
@@ -548,7 +509,6 @@ mawk_srand(unsigned int u)
     srand(u);
 }
 
-#endif
 
 static
 CELL prev_seed = /* for return value of srand() */
