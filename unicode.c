@@ -278,7 +278,32 @@ int main()
 
  if(_isatty(_fileno( stdin )))
  	_setmode( _fileno( stdin ), _O_WTEXT ); /* stdin is also utf8 (only needed if interactive input) */
-
+/* now do a runtime check that processor matches compile time requirements */
+#if defined(__has_builtin) && __has_builtin(__builtin_cpu_supports)
+ #ifdef __SSE__
+  if(!__builtin_cpu_supports("sse")) {fputs(" Error: SSE required but not available\n",stderr); exit(1);}
+ #endif
+  #ifdef __SSE2__
+  if(!__builtin_cpu_supports("sse2")) {fputs(" Error: SSE2 required but not available\n",stderr); exit(1);}
+ #endif
+  #ifdef __SSE3__
+  if(!__builtin_cpu_supports("sse3")) {fputs(" Error: SSE3 required but not available\n",stderr); exit(1);}
+ #endif
+  #ifdef __SSE4_1__
+  if(!__builtin_cpu_supports("sse4.1")) {fputs(" Error: SSE4.1 required but not available\n",stderr); exit(1);}
+ #endif
+  #ifdef __SSE4_2__
+  if(!__builtin_cpu_supports("sse4.2")) {fputs(" Error: SSE4.2 required but not available\n",stderr); exit(1);}
+ #endif
+  #ifdef __AVX__
+  if(!__builtin_cpu_supports("avx")) {fputs(" Error: AVX required but not available\n",stderr); exit(1);}
+ #endif
+  #ifdef __AVX2__
+  if(!__builtin_cpu_supports("avx2")) {fputs(" Error: AVX2 required but not available\n",stderr); exit(1);}
+ #endif
+#else
+ #pragma message( "__builtin_cpu_supports() NOT available for runtime processor capability detection")
+#endif
 #if 1
  /* array of environment variables is terminated with a NULL pointer, convert these to UTF8 strings */
  size_t count_env=0;

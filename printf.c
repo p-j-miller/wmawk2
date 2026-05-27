@@ -17,6 +17,7 @@ Notangle is part of Norman Ramsey's noweb literate programming package.
 Noweb home page: http://www.cs.tufts.edu/~nr/noweb/
 
 It's easiest to read or modify this file by working with printf.w.
+1/5/2026 Peter Miller - added "fast path's" for common output formats (supported by ya-dconvert) 
 */
 #if defined(__MSVCRT__) && !defined(__USE_MINGW_ANSI_STDIO)
 #define __USE_MINGW_ANSI_STDIO 1 /* So mingw uses its printf not msvcrt */
@@ -27,6 +28,7 @@ It's easiest to read or modify this file by working with printf.w.
 #include "scan.h"
 #include "printf.h"
 #include "int.h"
+#include "..\ya-sprintf\ya-dconvert.h"
 
 static Form* the_forms ;
 static STRING the_nl = {1,1,"\n"} ;
@@ -500,7 +502,39 @@ static void xprint_pf_f(FILE* fp, const char* form,
     if (fp) {
         switch(cnt) {
             case 0:
+#if 1 /* PMi: fast path for common cases , on test program createcsvbig_e.awk this gives a 27% speedup vs just using ya_sprintf with fpfmt, while createcsvbig_g.awk gives a 32% speedup total speedup over 2.0 is 8* and 7.3* respectively */
+				 const char *f=form;
+				 // see if form is %g or %e in which case we can use a "shortcut" for faster execution
+				 // parse fmt looking for %e and %g only allow %e, %.nne, %g, %.nng where nn is a decimal number . * as a precision is not allowed here (by awk print syntax as no extra args)
+				 int prec=6;// precision, default of 6,a different number can be specified in fmt
+				 if(*f=='%') // all special cases need to start with %
+					{f++;
+					 if(*f=='.')
+						{// precision found, parse it
+						 f++;
+						 if(*f>='0' && *f<='9')
+							{// precision embedded in format
+							 prec=*f++ -'0';
+							 while(*f>='0' && *f<='9') prec=prec*10+*f++ -'0';
+							}
+						}
+					 char obuff[32];// should be adequate for any reasonable request
+					 if((*f=='e' || *f=='g') && f[1]==0 && prec+10<sizeof(obuff)) // +10 allows for "fixed overhead" of conversion i.e. sign, exponent, etc
+						{// %e or g [and nothing else following] - we can do this ourselves without using fprintf()
+						 char *e;
+						 if(*f=='e')
+							e=ya_dconvert_efmt(obuff,d,prec);
+						 else
+							e=ya_dconvert_gfmt(obuff,d,prec);
+						 fwrite(obuff,1,e-obuff,fp);// actually write out result
+						 break;// from switch/case 0
+						} 	 	
+					}
+				// just use fprintf in all other cases
+				fprintf(fp,form, d) ;
+#else /* original code */            
                 fprintf(fp, form, d) ;
+#endif                
                 break ;
             case 1:
                 fprintf(fp, form, x, d) ;
@@ -517,7 +551,44 @@ static void xprint_pf_f(FILE* fp, const char* form,
         while(1) {
             switch(cnt) {
                 case 0:
+#if 1 /* PMi: fast path for common cases , on test program createcsvbig_sprintf.awk this gives a 20% speedup vs just using ya_sprintf with fpfmt, total speedup over 2v0 is 5.7*  */
+					 const char *f=form;
+					 // see if form is %g or %e in which case we can use a "shortcut" for faster execution
+					 // parse fmt looking for %e and %g only allow %e, %.nne, %g, %.nng where nn is a decimal number . * as a precision is not allowed here (by awk print syntax as no extra args)
+					 int prec=6;// precision, default of 6,a different number can be specified in fmt
+					 if(*f=='%') // all special cases need to start with %
+						{f++;
+						 if(*f=='.')
+							{// precision found, parse it
+							 f++;
+							 if(*f>='0' && *f<='9')
+								{// precision embedded in format
+								 prec=*f++ -'0';
+								 while(*f>='0' && *f<='9') prec=prec*10+*f++ -'0';
+								}
+							}
+						 char obuff[32];// should be adequate for any reasonable request
+						 if((*f=='e' || *f=='g') && f[1]==0 && prec+10<sizeof(obuff)) // +10 allows for "fixed overhead" of conversion i.e. sign, exponent, etc
+							{// %e or g [and nothing else following] - we can do this ourselves without using fprintf()
+							 char *e;
+							 if(*f=='e')
+								e=ya_dconvert_efmt(obuff,d,prec);
+							 else
+								e=ya_dconvert_gfmt(obuff,d,prec);
+							 used=e-obuff;
+							 if(used<=room)
+							 	{
+							 	 memcpy(sprintf_ptr,obuff,used); 
+						 	 	 sprintf_ptr[used]=0; // terminate c string
+							 	}
+							 break;// from switch/case 0
+							} 	 	
+						}
+					// just use fprintf in all other cases
+					used = snprintf(sprintf_ptr, room, form, d) ;
+#else /* original code */                  
                     used = snprintf(sprintf_ptr, room, form, d) ;
+#endif                    
                     break ;
                 case 1:
                     used = snprintf(sprintf_ptr, room, form, x ,d) ;
@@ -544,7 +615,32 @@ static void xprint_pf_i(FILE* fp, const char* form,
     if (fp) {
         switch(cnt) {
             case 0:
+#if 1 /* PMi: fast path for common case - just %d and val in the range -7digits -> + 8 digits, speedup *2 with createcsvbig_u_d.awk */  
+				if(strcmp(form,"%d")==0 && val>-10000000 && val<100000000)   
+					{
+					 if(val==0) putc('0',fp);// 0 is a special case
+					 else if( val>0 ) // positive & <100000000 = 100,000,000 so 8 digits max here. for(i=1;i<100000000;++i) print() - takes around 30 secs so this will hopefully capture most usage
+					 	{uint64_t a=ya_to_BCD8(val);// a has bcd with 1 digit/byte
+					 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+					 	 a<<=(lz<<3); // remove leading zero's 
+					 	 if(is_big_endian()) a|=0x0101010101010101u * '0';// convert to ascii
+					 	 else a=bswap64(a|(0x0101010101010101u * '0'));
+					 	 fwrite(&a,1,8-lz,fp);// no need for an intermediate buffer - just use a directly
+					 	}
+					 else  // must be negative and > 	-1000000 = -1,000,000 so 7 digits max (to leave room for minus sign)
+					 	{uint64_t a=ya_to_BCD8(-val);// a has bcd with 1 digit/byte
+					 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+					 	 lz--; // leave space for leading minus sign
+					 	 a<<=(lz<<3); // remove leading zero's 
+					 	 if(is_big_endian()) a|=0x2d30303030303030;// convert to ascii or - followed by 7 zero's
+					 	 else a=bswap64(a|0x2d30303030303030);
+					 	 fwrite(&a,1,8-lz,fp);// no need for an intermediate buffer - just use a directly
+					 	}	
+					}
+				else fprintf(fp, form, val) ; // any other case
+#else
                 fprintf(fp, form, val) ;
+#endif                
                 break ;
             case 1:
                 fprintf(fp, form, x, val) ;
@@ -561,7 +657,52 @@ static void xprint_pf_i(FILE* fp, const char* form,
         while(1) {
             switch(cnt) {
                 case 0:
+#if 1 /* PMi: fast path for common case - just %d and val in the range -7digits -> + 8 digits */  
+					if(strcmp(form,"%d")==0 && val>-10000000 && val<100000000)   
+						{
+						 if(val==0) 
+						 	{// 0 is a special case
+						 	 used=2;				 	
+						 	 if(used<=room)
+						 	 	{sprintf_ptr[0]='0';
+						 	 	 sprintf_ptr[1]=0;
+						 	 	}	
+						 	}
+						 else if( val>0 && val<100000000) // positive & <100000000 = 100,000,000 so 8 digits max here. for(i=1;i<100000000;++i) print() - takes around 30 secs so this will hopefully capture most usage
+						 	{uint64_t a=ya_to_BCD8(val);// a has bcd with 1 digit/byte
+						 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+						 	 a<<=(lz<<3); // remove leading zero's 
+						 	 if(is_big_endian()) a|=0x0101010101010101u * '0';// convert to ascii
+						 	 else a=bswap64(a|(0x0101010101010101u * '0'));
+						 	 used=8-lz;
+						 	 if(used<=room)
+						 	 	{
+						 	 	 memcpy(sprintf_ptr,&a,used); // its faster to always copy 8 bytes, but buffer might not be big enough to do that here
+						 	 	 sprintf_ptr[8-lz]=0; // terminate c string
+						 	 	}
+						 	}
+						 else if (val<0 && val> -10000000) // negative and > 	-10000000 = -10,000,000 so 7 digits max (to leave room for minus sign)
+						 	{uint64_t a=ya_to_BCD8(-val);// a has bcd with 1 digit/byte
+						 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+						 	 lz--; // leave space for leading minus sign
+						 	 a<<=(lz<<3); // remove leading zero's 
+						 	 if(is_big_endian()) a|=0x2d30303030303030;// convert to ascii or - followed by 7 zero's
+						 	 else a=bswap64(a|0x2d30303030303030);
+						 	 used=8-lz;
+						 	 if(used<=room)
+						 	 	{
+						 	 	 memcpy(sprintf_ptr,&a,used); // its faster to always copy 8 bytes, but buffer might not be big enough to do that here
+						 	 	 sprintf_ptr[8-lz]=0; // terminate c string
+						 	 	}				 	 
+						 	}	
+						}		 
+					 else
+					 	{ // deal with general case
+					 	 used = snprintf(sprintf_ptr, room, form, val) ;
+		 				}
+#else /* original code */                
                     used = snprintf(sprintf_ptr, room, form, val) ;
+#endif                    
                     break ;
                 case 1:
                     used = snprintf(sprintf_ptr, room, form, x ,val) ;
@@ -574,7 +715,7 @@ static void xprint_pf_i(FILE* fp, const char* form,
             
             if (used <= room) break ; /* while */
             do {
-                sprintf_ptr = enlarge_string_buff(sprintf_ptr) ;
+                sprintf_ptr = enlarge_string_buff(sprintf_ptr) ;// will add at least 8KB
                 room = string_buff_end - sprintf_ptr ;
             }
             while(room < used) ;
@@ -588,7 +729,23 @@ static void xprint_pf_u(FILE* fp, const char* form,
     if (fp) {
         switch(cnt) {
             case 0:
+#if 1 /* PMi: fast path for common case - just %u and val in the range 0 -> + 8 digits , speedup *2 with createcsvbig_u_d.awk */  
+				if(strcmp(form,"%u")==0 &&  val<100000000)   
+					{
+					 if(val==0) putc('0',fp);// 0 is a special case
+					 else // must be positive & <100000000 = 100,000,000 so 8 digits max here. for(i=1;i<100000000;++i) print() - takes around 30 secs so this will hopefully capture most usage
+					 	{uint64_t a=ya_to_BCD8(val);// a has bcd with 1 digit/byte
+					 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+					 	 a<<=(lz<<3); // remove leading zero's 
+					 	 if(is_big_endian()) a|=0x0101010101010101u * '0';// convert to ascii
+					 	 else a=bswap64(a|(0x0101010101010101u * '0'));
+					 	 fwrite(&a,1,8-lz,fp);// no need for an intermediate buffer - just use a directly
+					 	}
+					}
+				else fprintf(fp, form, val) ; // any other case
+#else
                 fprintf(fp, form, val) ;
+#endif  
                 break ;
             case 1:
                 fprintf(fp, form, x, val) ;
@@ -605,7 +762,38 @@ static void xprint_pf_u(FILE* fp, const char* form,
         while(1) {
             switch(cnt) {
                 case 0:
+#if 1 /* PMi: fast path for common case - just %u and val in the range 0-> + 8 digits*/  
+					if(strcmp(form,"%u")==0 && val>=0 && val<100000000)   
+						{
+						 if(val==0) 
+						 	{// 0 is a special case
+						 	 used=2;				 	
+						 	 if(used<=room)
+						 	 	{sprintf_ptr[0]='0';
+						 	 	 sprintf_ptr[1]=0;
+						 	 	}	
+						 	}
+						 else // positive & <100000000 = 100,000,000 so 8 digits max here. for(i=1;i<100000000;++i) print() - takes around 30 secs so this will hopefully capture most usage
+						 	{uint64_t a=ya_to_BCD8(val);// a has bcd with 1 digit/byte
+						 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+						 	 a<<=(lz<<3); // remove leading zero's 
+						 	 if(is_big_endian()) a|=0x0101010101010101u * '0';// convert to ascii
+						 	 else a=bswap64(a|(0x0101010101010101u * '0'));
+						 	 used=8-lz;
+						 	 if(used<=room)
+						 	 	{
+						 	 	 memcpy(sprintf_ptr,&a,used); // its faster to always copy 8 bytes, but buffer might not be big enough to do that here
+						 	 	 sprintf_ptr[8-lz]=0; // terminate c string
+						 	 	}
+						 	}
+						}		 
+					 else
+					 	{ // deal with general case
+					 	 used = snprintf(sprintf_ptr, room, form, val) ;
+		 				}
+#else /* original code */                  
                     used = snprintf(sprintf_ptr, room, form, val) ;
+#endif                    
                     break ;
                 case 1:
                     used = snprintf(sprintf_ptr, room, form, x ,val) ;

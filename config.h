@@ -17,8 +17,12 @@
 	- use of ya_printf() to get faster output that does not rely on compiler printf
 	- systime(0) and systime(1) added to get 1us resolution and UTC or localtime. systime() behaves as it always did for backwards compatibility.
 	
+ version 2.1 
+	- updated to use latest ya_sprint (2v3 using fpfmt algorithm).
+	- compiled with gcc 15.2.0 using -msse4.2 as this is now the minimum for Windows 11.
+	
  */
-#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.0 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
+#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.1 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
 
 
 #define USE_FAST_STRTOD /* if defined use fast strtod rather than very slow version built into TDM-GCC */

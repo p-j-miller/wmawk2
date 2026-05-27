@@ -38,6 +38,9 @@ print_version(void)
 #ifdef USE_FAST_STRTOD 
 	printf(" Built using fast_strtod()\n");
 #endif	
+#ifdef YA_SP_SPRINTF_DEFAULT
+	printf(" Built using ya_sprintf\n");
+#endif
 #ifdef MAWK_SYSTIME 
 	printf(" Built to include systime() function\n");
 #endif	
@@ -59,13 +62,30 @@ print_version(void)
 #if defined(__VERSION__) && defined( __GNUC__)
     printf(" Compiled with gnuc version %s ",__VERSION__);
 #ifdef __MINGW64__
-	printf(" for Mingw64\n");
+	printf(" for Windows 64\n");
 #elif define __MINGW32__
-	printf(" for Mingw32\n");
+	printf(" for Windows 32\n");
 #endif
   // _WIN32, _WIN64 and __MSVCRT__ are also defined by gcc */			
 #endif   
+#if 1
+// runtime tests
+#if defined(__has_builtin) && __has_builtin(__builtin_cpu_supports)
+ puts("Runtime processor capability detection:");
+ if(__builtin_cpu_supports("sse")) puts(" sse");
+ if(__builtin_cpu_supports("sse2")) puts(" sse2");
+ if(__builtin_cpu_supports("sse3")) puts(" sse3");
+ if(__builtin_cpu_supports("sse4.1")) puts(" sse4.1");
+ if(__builtin_cpu_supports("sse4.2")) puts(" sse4.2");
+ if(__builtin_cpu_supports("avx")) puts(" avx");
+ if(__builtin_cpu_supports("avx2")) puts(" avx2");
+ puts("");// prints newline (puts always adds newline)
+#else
+ puts("Runtime processor capability detection not available");
+#endif
 
+
+#endif
 #if 0
 	// check LDFMT is set OK and see how doubles are printed 
 	printf("Test of using LDFMT (%s) to print int64_t: 1=" LDFMT ", -1=" LDFMT ", 12345678901234567=" LDFMT "\n", LDFMT,(int64_t)1,(int64_t)-1,(int64_t)12345678901234567);

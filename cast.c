@@ -11,6 +11,9 @@ the GNU General Public License, version 3, 2007.
 
 If you import elements of this code into another product,
 you agree to not name that product mawk.
+
+Peter Miller 2/5/2026 added "fast path" to cast1_to_s().
+
 ********************************************/
 
 
@@ -25,7 +28,7 @@ you agree to not name that product mawk.
 #include "repl.h"
 #include "int.h"
 #include "config.h"
-
+#include "..\ya-sprintf\ya-dconvert.h"
 
 
 int mpow2[NUM_CELL_TYPES] =
@@ -157,31 +160,117 @@ cast1_to_s(CELL* cp)
 
       case C_DOUBLE:
       {
-          char buffer[1024] ;
-	  double d = cp->dval ;
-	  if (is_int_double(d)) {
-#if  LONG64
-              sprintf(buffer,"%ld", (int64_t) d) ;
-#else
-              sprintf(buffer,"%lld", (int64_t) d) ;
+        char buffer[1024] ;
+	    double d = cp->dval ;
+	    if (is_int_double(d)) 
+			{int64_t di=(int64_t) d;
+#if 1 /* PMi: new code with fast "shortcut" - uses routines from ya-dconvert.h, deals quickly with integers -10,000,000 <int<100,000,000, the rest are handled by ya_sprintf - both fast paths combined give 45 % reduction in test time for createcsvbig_print-cast.awk giving 4.4* overall vs 2v0 */
+			 if(di==0) 
+			 	{// 0 is a special case
+			 	 buffer[0]='0';
+			 	 buffer[1]=0;
+			 	}
+			 else if( di>0 && di<100000000) // positive & <100000000 = 100,000,000 so 8 digits max here. for(i=1;i<100000000;++i) print() - takes around 30 secs so this will hopefully capture most usage
+			 	{uint64_t a=ya_to_BCD8(di);// a has bcd with 1 digit/byte
+			 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+			 	 a<<=(lz<<3); // remove leading zero's 
+			 	 if(is_big_endian()) a|=0x0101010101010101u * '0';// convert to ascii
+			 	 else a=bswap64(a|(0x0101010101010101u * '0'));
+			 	 memcpy(buffer,&a,8); // its faster to always copy 8 bytes
+			 	 buffer[8-lz]=0; // terminate c string
+			 	}
+			 else if (di<0 && di> -10000000) // negative and > 	-10000000 = -10,000,000 so 7 digits max (to leave room for minus sign)
+			 	{uint64_t a=ya_to_BCD8(-di);// a has bcd with 1 digit/byte
+			 	 int lz=ya_clz(a)>>3; // 1 byte per digit (does not work when di=a=0)
+			 	 lz--; // leave space for leading minus sign
+			 	 a<<=(lz<<3); // remove leading zero's 
+			 	 if(is_big_endian()) a|=0x2d30303030303030;// convert to ascii or - followed by 7 zero's
+			 	 else a=bswap64(a|0x2d30303030303030);
+			 	 memcpy(buffer,&a,8); // its faster to always copy 8 bytes
+			 	 buffer[8-lz]=0; // terminate c string
+			 	}			 
+			 else
+			 	{ // deal with general case
+ #if   LONG64
+			 	 sprintf(buffer,"%ld", di) ;
+ #else
+             	 sprintf(buffer,"%lld", di) ;
+ #endif
+ 				}
+#else // original code				
+ #if  LONG64
+              sprintf(buffer,"%ld", di) ;
+ #else
+              sprintf(buffer,"%lld", di) ;
+ #endif
 #endif
               cp->ptr = new_STRING(buffer) ;
-          }
-	  else  {
+          	}
+	    else  
+		 {
 	      const char* conv = string(CONVFMT)->str ;
-	      unsigned used ;
+	      unsigned used=0 ;
+#if 1 /* PMi: new code with "fast path" for common cases - default CONVFMT is %.6g which is one of the cases we do speed up (the other is %e) */
+		 /* we have a double to print in CONVFMT */
+		 const char *f=conv;
+		 // see if CONVFMT is %g or %e in which case we can use a "shortcut" for faster execution
+		 // parse fmt looking for %e and %g only allow %e, %.nne, %g, %.nng where nn is a decimal number . * as a precision is not allowed here (by awk print syntax)
+		 int prec=6;// precision, default of 6,a different number can be specified in fmt
+		 if(*f=='%') // all special cases need to start with %
+			{f++;
+			 if(*f=='.')
+				{// precision found, parse it
+				 f++;
+				 if(*f>='0' && *f<='9')
+					{// precision embedded in format
+					 prec=*f++ -'0';
+					 while(*f>='0' && *f<='9') prec=prec*10+*f++ -'0';
+					}
+				}
+			 if((*f=='e' || *f=='g') && f[1]==0 && prec+10<sizeof(buffer)) // +10 allows for "fixed overhead" of conversion i.e. sign, exponent, etc
+				{// %e or g [and nothing else following] - we can do this ourselves without using fsprintf()
+				 char *e;
+				 if(*f=='e')
+					e=ya_dconvert_efmt(buffer,d,prec);
+				 else
+					e=ya_dconvert_gfmt(buffer,d,prec);
+				 cp->ptr = new_STRING2(buffer,e-buffer) ;// actually write out result
+				 used=1;// flag we have successfully done the conversion
+				} 	 	
+			}
+		 if(used==0)
+		 	{// fall back to original code, this still uses ya_sprintf() so benefits from use of the fpfmt algorithm, but ya_sprintf() is much more complex and so slower than the special cases above
+		      used = snprintf(buffer, sizeof(buffer), conv, d) ;
+		      if ((int) used < 0) 
+			  	{
+		          rt_error("snprintf bozo (%d)", errno) ;
+		      	}
+		      if (used > sizeof(buffer)) 
+			  	{
+		          cp->ptr = slow_convfmt(conv, d, used) ;
+		      	}
+		      else 
+			  	{
+		          cp->ptr = new_STRING2(buffer,used) ;
+		      	}		 	
+		 	}
+#else /* original code */ 	      
 	      used = snprintf(buffer, 1024, conv, d) ;
-	      if ((int) used < 0) {
+	      if ((int) used < 0) 
+		  	{
 	          rt_error("snprintf bozo (%d)", errno) ;
-	      }
-	      if (used > 1024) {
+	      	}
+	      if (used > 1024) 
+		  	{
 	          cp->ptr = slow_convfmt(conv, d, used) ;
-	      }
-	      else {
+	      	}
+	      else 
+		  	{
 	          cp->ptr = new_STRING2(buffer,used) ;
-	      }
-          }
-	  break ;
+	      	}
+#endif	      	
+         }
+	   break ;
       }
 
       case C_STRING:

@@ -23,8 +23,13 @@ you agree to not name that product mawk.
 
 typedef void* PTR ;
 typedef int Bool ;
+#if 1 /* use ya_sprintf */
+ #define YA_SP_SPRINTF_DEFAULT // only necessary if you wish to replace the "built-in" versions of printf, sprintf, fprintf, etc
+ #include "..\ya-sprintf\ya_sprintf.h" // does not include full implementation
+#else
 #if defined(__MSVCRT__) && !defined(__USE_MINGW_ANSI_STDIO)
 #define __USE_MINGW_ANSI_STDIO 1 /* So mingw uses its printf not msvcrt */
+#endif
 #endif
 #include <stdlib.h>
 #include <unistd.h>
