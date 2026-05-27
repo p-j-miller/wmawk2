@@ -25,6 +25,7 @@ typedef void* PTR ;
 #include <string.h>
 #include <stdint.h>
 #include  <setjmp.h>
+#include "..\mawk.h" /* needed for ya-sprintf */
 
 typedef int Bool ;
 PTR   REcompile(const char *,size_t)  ;
