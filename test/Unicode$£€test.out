@@ -1,0 +1,84 @@
+should print Dollar,Pound,Euro:$£€
+should print Dollar,Pound,Euro:$£€
+out2-$£€.txt
+output of pipe was: should print Dollar,Pound,Euro:$£€
+Command line arguments are:
+ ARGV[1]=Dollar
+ ARGV[2]=Pound
+ ARGV[3]=Euro
+ ARGV[4]=$
+ ARGV[5]=£
+ ARGV[6]=€
+environment variable is:
+ ENVIRON[wmawk2-env]="Unicode$£€test"
+ord(""=-1 (0xffffffffffffffff) [ this is a zero length string ]
+ord("a"=97 (0x61) : %c gives a
+ord("Z"=90 (0x5a) : %c gives Z
+ord("0"=48 (0x30) : %c gives 0
+ord("9"=57 (0x39) : %c gives 9
+u8length("1234") returns 4, length("1234") returns 4
+ Character 1 = "1" at index 1 length 1
+ Character 2 = "2" at index 2 length 1
+ Character 3 = "3" at index 3 length 1
+ Character 4 = "4" at index 4 length 1
+u8length("$£€123$£€") returns 9, length("$£€123$£€") returns 15
+ Character 1 = "$" at index 1 length 1
+ Character 2 = "£" at index 2 length 2
+ Character 3 = "€" at index 4 length 3
+ Character 4 = "1" at index 7 length 1
+ Character 5 = "2" at index 8 length 1
+ Character 6 = "3" at index 9 length 1
+ Character 7 = "$" at index 10 length 1
+ Character 8 = "£" at index 11 length 2
+ Character 9 = "€" at index 13 length 3
+u8length("Ḽơᶉëᶆ") returns 5, length("Ḽơᶉëᶆ") returns 13
+ Character 1 = "Ḽ" at index 1 length 3
+ Character 2 = "ơ" at index 4 length 2
+ Character 3 = "ᶉ" at index 6 length 3
+ Character 4 = "ë" at index 9 length 2
+ Character 5 = "ᶆ" at index 11 length 3
+u8length("") returns 0, length("") returns 0, lenu8chr("") returns 0 
+length(15*35)=3 u8length(15*35)=3 : both are expected to be 3 as 15*35=525
+u8substr("Ḽơᶉëᶆ",start=0) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=0,length=0) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=0,length=1) returns "Ḽ"
+u8substr("Ḽơᶉëᶆ",start=0,length=2) returns "Ḽơ"
+u8substr("Ḽơᶉëᶆ",start=0,length=3) returns "Ḽơᶉ"
+u8substr("Ḽơᶉëᶆ",start=0,length=4) returns "Ḽơᶉë"
+u8substr("Ḽơᶉëᶆ",start=0,length=5) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=0,length=6) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=0,length=7) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=1) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=1,length=0) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=1,length=1) returns "Ḽ"
+u8substr("Ḽơᶉëᶆ",start=1,length=2) returns "Ḽơ"
+u8substr("Ḽơᶉëᶆ",start=1,length=3) returns "Ḽơᶉ"
+u8substr("Ḽơᶉëᶆ",start=1,length=4) returns "Ḽơᶉë"
+u8substr("Ḽơᶉëᶆ",start=1,length=5) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=1,length=6) returns "Ḽơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=2) returns "ơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=2,length=0) returns "ơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=2,length=1) returns "ơ"
+u8substr("Ḽơᶉëᶆ",start=2,length=2) returns "ơᶉ"
+u8substr("Ḽơᶉëᶆ",start=2,length=3) returns "ơᶉë"
+u8substr("Ḽơᶉëᶆ",start=2,length=4) returns "ơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=2,length=5) returns "ơᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=3) returns "ᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=3,length=0) returns "ᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=3,length=1) returns "ᶉ"
+u8substr("Ḽơᶉëᶆ",start=3,length=2) returns "ᶉë"
+u8substr("Ḽơᶉëᶆ",start=3,length=3) returns "ᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=3,length=4) returns "ᶉëᶆ"
+u8substr("Ḽơᶉëᶆ",start=4) returns "ëᶆ"
+u8substr("Ḽơᶉëᶆ",start=4,length=0) returns "ëᶆ"
+u8substr("Ḽơᶉëᶆ",start=4,length=1) returns "ë"
+u8substr("Ḽơᶉëᶆ",start=4,length=2) returns "ëᶆ"
+u8substr("Ḽơᶉëᶆ",start=4,length=3) returns "ëᶆ"
+u8substr("Ḽơᶉëᶆ",start=5) returns "ᶆ"
+u8substr("Ḽơᶉëᶆ",start=5,length=0) returns "ᶆ"
+u8substr("Ḽơᶉëᶆ",start=5,length=1) returns "ᶆ"
+u8substr("Ḽơᶉëᶆ",start=5,length=2) returns "ᶆ"
+u8substr("Ḽơᶉëᶆ",start=6) returns ""
+u8substr("Ḽơᶉëᶆ",start=6,length=0) returns ""
+u8substr("Ḽơᶉëᶆ",start=6,length=1) returns ""
+Unicode Test finished - no errors found

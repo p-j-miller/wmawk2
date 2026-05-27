@@ -1,0 +1,20 @@
+
+EPOCH (1 sec resolution):
+ date/time now is: 1970-01-01 00:00:00.000000
+ t=0.000000
+ strftime_awk() returned 1970-01-01 00:00:00.000000
+ mktime_awk() returned 0.000000
+
+2024-09-11 20:07:31.021 (1ms resolution):
+ date/time now is: 2024-09-11 20:07:31.021000
+ t=1726085251.021000
+ strftime_awk() returned 2024-09-11 20:07:31.021000
+ mktime_awk() returned 1726085251.021000
+
+2024-09-11 20:07:31.021234 (1us resolution):
+ date/time now is: 2024-09-11 20:07:31.021234
+ t=1726085251.021234
+ strftime_awk() returned 2024-09-11 20:07:31.021234
+ mktime_awk() returned 1726085251.021234
+
+All tests passed

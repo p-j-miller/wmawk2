@@ -1,0 +1,20 @@
+Testing median() for 10000001 elements so median at array index 5000001
+ testing random numbers 0-1 so expect median to be ~0.5
+  _median(arr,100,201) returned 0.459205 and arr[151]=0.459205
+  median() returned 0.499932 and arr[5000001]=0.499932
+ testing random numbers +/-1 so expect median to be ~0
+  _median(arr,100,201) returned 0.157319 and arr[151]=0.157319
+  median() returned 0.00034855 and arr[5000001]=0.00034855
+ testing integer numbers 0..maxi-1 so expect median to be 5000000
+  _median(arr,100,201) returned 150 and arr[151]=150
+  median() returned 5e+06 and arr[5000001]=5e+06
+ testing integer numbers maxi-1 to 0 so expect median to be 5000000
+  _median(arr,100,201) returned 9.99985e+06 and arr[151]=9.99985e+06
+  median() returned 5e+06 and arr[5000001]=5e+06
+ testing integer numbers all 5, so expect median to be 5
+  _median(arr,100,201) returned 5 and arr[151]=5
+  median() returned 5 and arr[5000001]=5
+ testing integer numbers mainly 5, with a few other values - so expect median to be 5
+  _median(arr,100,201) returned 5 and arr[151]=5
+  median() returned 5 and arr[5000001]=5
+median() test finished OK

@@ -1,0 +1,2 @@
+print with no redirection gives 1 2 3 
+print redirected to stdout gives 1 2 3 
