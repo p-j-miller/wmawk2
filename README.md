@@ -87,3 +87,4 @@ It can be created with the command below (which should only need to be done once
 ~~~
  wmawk2 -f print_test.awk >print_test.out
 ~~~
+Version 2.2 adds %f to the list of printf() formats that are optimized (which gives a small speed improvement with the test programs). It also swaps to the latest version of ya_sprintf (2v4) which resolves an issue that can result in incorrect rounding with %f formats (giving a result potentially in error by one in the least significant digit). This means the file print_test.out also needs to be updated (see instructions above).
