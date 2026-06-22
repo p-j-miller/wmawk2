@@ -1683,3 +1683,10 @@ Apart from the execution time, the results are identical for 2v0 and
 2v1.
 Note that about 1.5GB of free disk space is required to run these test
 programs as handling of large files is part of the testing conducted.
+.PP
+Version \f[B]2.2\f[R] adds %f to the list of printf() formats that are
+optimized (which gives a small speed improvement with the test
+programs).
+It also swaps to the latest version of ya_sprintf (2v4) which resolves
+an issue that can result in incorrect rounding with %f formats (giving a
+result potentially in error by one in the least significant digit).
