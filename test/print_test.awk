@@ -29,6 +29,7 @@ BEGIN{ # tests changes in wmawk2 2v1 using fpfmt etc
 		 # sprintf
 		 sd=sprintf("%d",t )
 		 su=sprintf("%u",t)
+		 
 		 se=sprintf("%e",t)
 		 se0=sprintf("%.0e",t)
 		 se1=sprintf("%.1e",t)
@@ -40,7 +41,6 @@ BEGIN{ # tests changes in wmawk2 2v1 using fpfmt etc
 		 se7=sprintf("%.7e",t)
 		 se8=sprintf("%.8e",t)
 		 se9=sprintf("%.9e",t)
-
 		 se10=sprintf("%.10e",t)
 		 se11=sprintf("%.11e",t)
 		 se12=sprintf("%.12e",t)
@@ -49,6 +49,25 @@ BEGIN{ # tests changes in wmawk2 2v1 using fpfmt etc
 		 se15=sprintf("%.15e",t)
 		 se16=sprintf("%.16e",t)
 
+		 sf=sprintf("%f",t)
+		 sf0=sprintf("%.0f",t)
+		 sf1=sprintf("%.1f",t)
+		 sf2=sprintf("%.2f",t)
+		 sf3=sprintf("%.3f",t)
+		 sf4=sprintf("%.4f",t)
+		 sf5=sprintf("%.5f",t)
+		 sf6=sprintf("%.6f",t)
+		 sf7=sprintf("%.7f",t)
+		 sf8=sprintf("%.8f",t)
+		 sf9=sprintf("%.9f",t)
+		 sf10=sprintf("%.10f",t)
+		 sf11=sprintf("%.11f",t)
+		 sf12=sprintf("%.12f",t)
+		 sf13=sprintf("%.13f",t)
+		 sf14=sprintf("%.14f",t)
+		 sf15=sprintf("%.15f",t)
+		 sf16=sprintf("%.16f",t)
+		 sf17=sprintf("%.17f",t)
 		 
 		 sg=sprintf("%g",t)
 		 sg0=sprintf("%.0g",t)
@@ -85,19 +104,24 @@ BEGIN{ # tests changes in wmawk2 2v1 using fpfmt etc
 		 
 		 # do some basic round the loop tests
 		 # DBL_DECIMAL_DIG is 17 so %.16e or %.17g should be round the loop exact
+		 # no %f is guaranteed to be round the loop exact in general, here we check values >1
 		 if(se16+0!=t)
 			{errs++
 			 printf("Error: se16=%s != t(%.16e - %.17g)\n",se16,t,t)>>"/dev/stderr"
 			}
 		 if(sg17+0!=t)
 			{errs++
-			 printf("Error: sg17=%s != t(%.16e - %.17g)\n",se16,t,t)>>"/dev/stderr"
-			}			
+			 printf("Error: sg17=%s != t(%.16e - %.17g)\n",sg17,t,t)>>"/dev/stderr"
+			}
+		 if(t>=1 && sf17+0!=t)
+			{errs++
+			 printf("Error: sf17=%s != t(%.16e - %.17g, %.17f)\n",sf17,t,t,t)>>"/dev/stderr"
+			}
 		 # test print statement
-		 print "print",i,t,c,sd,su,"SE",se,se0,se1,se2,se3,se4,se5,se6,se7,se8,se9, se10,se11,se12,se13,se14,se15,se16,"SG",sg,sg0,sg1,sg2,sg3,sg4,sg5,sg6,sg7,sg8,sg9, sg10,sg11,sg12,sg13,sg14,sg15,sg16,sg17,"not acc",s1e,s1g,sE,sE1,sE10,sE16,sG,sG1,sG10,sG17
+		 print "print",i,t,c,sd,su,"SE",se,se0,se1,se2,se3,se4,se5,se6,se7,se8,se9, se10,se11,se12,se13,se14,se15,se16,"SF",sf,sf0,sf1,sf2,sf3,sf4,sf5,sf6,sf7,sf8,sf9, sf10,sf11,sf12,sf13,sf14,sf15,sf16,sf17,"SG",sg,sg0,sg1,sg2,sg3,sg4,sg5,sg6,sg7,sg8,sg9, sg10,sg11,sg12,sg13,sg14,sg15,sg16,sg17,"not acc",s1e,s1g,sE,sE1,sE10,sE16,sG,sG1,sG10,sG17
 		 
 		 # test printf statement
-		 printf("printf %d :\"%s\"",i,c )
+		 printf("printf %d : \"%s\" ",i,c )
 		 printf("%d ",t )
 		 printf("%u ",t)
 		 printf("e: %e ",t)
@@ -119,6 +143,26 @@ BEGIN{ # tests changes in wmawk2 2v1 using fpfmt etc
 		 printf("%.14e ",t)
 		 printf("%.15e ",t)
 		 printf("%.16e ",t)
+		 
+		 printf("f: %f ",t)
+		 printf("%.0f ",t)
+		 printf("%.1f ",t)
+		 printf("%.2f ",t)
+		 printf("%.3f ",t)
+		 printf("%.4f ",t)
+		 printf("%.5f ",t)
+		 printf("%.6f ",t)
+		 printf("%.7f ",t)
+		 printf("%.8f ",t)
+		 printf("%.9f ",t)
+		 printf("%.10f ",t)
+		 printf("%.11f ",t)
+		 printf("%.12f ",t)
+		 printf("%.13f ",t)
+		 printf("%.14f ",t)
+		 printf("%.15f ",t)
+		 printf("%.16f ",t)
+		 printf("%.17f ",t)
 		 
 		 printf("g: %g ",t)
 		 printf("%.0g ",t)
@@ -197,5 +241,10 @@ function init() # initialise test_nos array
 	test_nos[13]=4.94065645841246544176568792868221372e-324 # denorm min
 	test_nos[14]=2.22507385850720138309023271733240406e-308 # double min
 	test_nos[15]=1.0+2.22044604925031308084726333618164062e-16 # dbl_epsilon
-    max_test_nos=15	
+	# special values for %f
+	test_nos[16]=0.6
+	test_nos[17]=0.997
+	test_nos[18]=517.5
+	test_nos[19]=67.6875
+    max_test_nos=19	
 }
