@@ -438,7 +438,7 @@ static
 void xprint_num_spec(FILE* fp, const Spec* spec, CELL* cp)
 {
     unsigned ast_cnt = spec->ast_cnt ;
-    int ast[2] ;
+    int ast[2]={0,0} ;// initialised to avoid gcc "may be used uninitialized" warning
 
     {
         if (ast_cnt >= 1)  {
@@ -504,8 +504,8 @@ static void xprint_pf_f(FILE* fp, const char* form,
             case 0:
 #if 1 /* PMi: fast path for common cases , on test program createcsvbig_e.awk this gives a 27% speedup vs just using ya_sprintf with fpfmt, while createcsvbig_g.awk gives a 32% speedup total speedup over 2.0 is 8* and 7.3* respectively */
 				 const char *f=form;
-				 // see if form is %g or %e in which case we can use a "shortcut" for faster execution
-				 // parse fmt looking for %e and %g only allow %e, %.nne, %g, %.nng where nn is a decimal number . * as a precision is not allowed here (by awk print syntax as no extra args)
+				 // see if form is %g, %f or %e in which case we can use a "shortcut" for faster execution
+				 // parse fmt looking for %e, %f and %g only allow %e, %.nne, %f, %.nnf, %g, %.nng where nn is a decimal number . * as a precision is not allowed here (by awk print syntax as no extra args)
 				 int prec=6;// precision, default of 6,a different number can be specified in fmt
 				 if(*f=='%') // all special cases need to start with %
 					{f++;
@@ -518,14 +518,16 @@ static void xprint_pf_f(FILE* fp, const char* form,
 							 while(*f>='0' && *f<='9') prec=prec*10+*f++ -'0';
 							}
 						}
-					 char obuff[32];// should be adequate for any reasonable request
-					 if((*f=='e' || *f=='g') && f[1]==0 && prec+10<sizeof(obuff)) // +10 allows for "fixed overhead" of conversion i.e. sign, exponent, etc
-						{// %e or g [and nothing else following] - we can do this ourselves without using fprintf()
+					 char obuff[350];// should be adequate for any reasonable request
+					 if((*f=='e' || *f=='g' || *f=='f') && f[1]==0 && prec+10+308<sizeof(obuff)) // +10 allows for "fixed overhead" of conversion i.e. sign, exponent, etc; +308 allows for %f and DBL_MAX (1.8e308)
+						{// %e, %f or g [and nothing else following] - we can do this ourselves without using fprintf()
 						 char *e;
 						 if(*f=='e')
 							e=ya_dconvert_efmt(obuff,d,prec);
-						 else
+						 else if(*f=='g')
 							e=ya_dconvert_gfmt(obuff,d,prec);
+						 else /* assume 'f' */
+						 	e=ya_dconvert_ffmt(obuff,d,prec);
 						 fwrite(obuff,1,e-obuff,fp);// actually write out result
 						 break;// from switch/case 0
 						} 	 	
@@ -553,8 +555,8 @@ static void xprint_pf_f(FILE* fp, const char* form,
                 case 0:
 #if 1 /* PMi: fast path for common cases , on test program createcsvbig_sprintf.awk this gives a 20% speedup vs just using ya_sprintf with fpfmt, total speedup over 2v0 is 5.7*  */
 					 const char *f=form;
-					 // see if form is %g or %e in which case we can use a "shortcut" for faster execution
-					 // parse fmt looking for %e and %g only allow %e, %.nne, %g, %.nng where nn is a decimal number . * as a precision is not allowed here (by awk print syntax as no extra args)
+					 // see if form is %g, %f or %e in which case we can use a "shortcut" for faster execution
+					 // parse fmt looking for %e, %f and %g only allow %e, %.nne, %f, %.nnf, %g, %.nng where nn is a decimal number . * as a precision is not allowed here (by awk print syntax as no extra args)
 					 int prec=6;// precision, default of 6,a different number can be specified in fmt
 					 if(*f=='%') // all special cases need to start with %
 						{f++;
@@ -567,14 +569,16 @@ static void xprint_pf_f(FILE* fp, const char* form,
 								 while(*f>='0' && *f<='9') prec=prec*10+*f++ -'0';
 								}
 							}
-						 char obuff[32];// should be adequate for any reasonable request
-						 if((*f=='e' || *f=='g') && f[1]==0 && prec+10<sizeof(obuff)) // +10 allows for "fixed overhead" of conversion i.e. sign, exponent, etc
-							{// %e or g [and nothing else following] - we can do this ourselves without using fprintf()
+						 char obuff[350];// should be adequate for any reasonable request
+						 if((*f=='e' || *f=='g' || *f=='f') && f[1]==0 && prec+10+308<sizeof(obuff)) // +10 allows for "fixed overhead" of conversion i.e. sign, exponent, etc; +308 allows for %f and DBL_MAX (1.8e308)
+							{// %e, %f or g [and nothing else following] - we can do this ourselves without using fprintf()
 							 char *e;
 							 if(*f=='e')
 								e=ya_dconvert_efmt(obuff,d,prec);
-							 else
+							 else if(*f=='g')
 								e=ya_dconvert_gfmt(obuff,d,prec);
+							 else // assume %f
+								e=ya_dconvert_ffmt(obuff,d,prec);								
 							 used=e-obuff;
 							 if(used<=room)
 							 	{

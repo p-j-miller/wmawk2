@@ -21,8 +21,12 @@
 	- updated to use latest ya_sprint (2v3 using fpfmt algorithm).
 	- compiled with gcc 15.2.0 using -msse4.2 as this is now the minimum for Windows 11.
 	
+ version 2.2
+	- use latest version of ya_sprintf (2v4)
+	- added %f to optimised printf formats
+	
  */
-#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.1 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
+#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.2 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
 
 
 #define USE_FAST_STRTOD /* if defined use fast strtod rather than very slow version built into TDM-GCC */
