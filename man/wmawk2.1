@@ -1690,3 +1690,16 @@ programs).
 It also swaps to the latest version of ya_sprintf (2v4) which resolves
 an issue that can result in incorrect rounding with %f formats (giving a
 result potentially in error by one in the least significant digit).
+.PP
+Version \f[B]2.3\f[R] swaps to the latest version of ya_sprintf (2v5)
+which is faster for some numbers when converted via %f.
+The example below (crafted to give the maximum improvement) runs \[ti]
+10% faster with wmawk2 version 2.3, but no significant speedup is shown
+on the test programs in the directory \[lq]test\[rq] when running
+wmawk2test.bat.
+.RS
+.PP
+\f[CR]wmawk2 \[dq]BEGIN{s=\f[R]\f[CR]systime\f[R]\f[CR](1\f[R]\f[CR]);for\f[R]\f[CR](\f[R]\f[CR]i\f[R]\f[CR]=0;i<1e9;++\f[R]\f[CR]i\f[R]\f[CR]) z=\f[R]\f[CR]sprintf\f[R]\f[CR](\[rs]\[dq]%.1f\[rs]\[dq],0.25);print \f[R]\f[CR]systime\f[R]\f[CR](1)\-s}\[dq]\f[R]
+.RE
+.PP
+For comparison wmawk2 2v2 is 25% faster than 2v1 on this test.
