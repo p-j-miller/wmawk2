@@ -95,4 +95,30 @@ wmawk2 "BEGIN{s=systime(1);for(i=0;i<1e9;++i) z=sprintf(\"%.1f\",0.25);print sys
 ~~~
 For comparison wmawk2 2v2 is 25% faster than 2v1 on this test.
 
+Version 2.4 uses ya_crmath_lib ( https://github.com/p-j-miller/ya_crmath_lib ) to give very 
+accurate values for the cos, sin, atan2, exp and log functions and the “^” (power) operator. 
+Previously wmawk2 used the functions provided by the compiler for these, however since 
+version 1.1 that meant wmawk2 was using these functions in the UCRT, which is part of the 
+Windows operating system. This was not expected to be an issue, but it has been found 
+that the results can now change depending upon the operating system (and update) that is 
+used - https://blog.r-project.org/2025/05/21/sensitivity-to-c-math-library-and-mingw-w64-v12-part-2/ gives a few examples where sin() and exp() do actually give different 
+results (between different Versions of Windows and also when running the same version of 
+Windows virtualized or not) and the wmawk2 test programs have also identified issues 
+with sin(). Even the typically achieved errors by the UCRT functions as given at 
+https://members.loria.fr/PZimmermann/papers/accuracy.pdf , table 3, MSVC 2026 
+column are not “best in class” (which is 0.500ulp (unit-in-last-place) ). This document (accuracy.pdf) also notes 
+that some machine code instructions give different results on Intel & AMD processors (e.g. 
+the rsqrt instruction) which gives another potential source of variability.
+Note that while the differences between the various implementations are very small, they 
+can give surprisingly large errors after a series of calculations, especially if these are 
+printed at a relatively low resolution. For example, using %.0f to print a value as an integer 
+(with no digits after the decimal point) is very sensitive to numbers at the 0.5 rounding 
+boundary. Thus, 1.49999999999999999 would print as 1 but 1.5 (only very slightly 
+larger) would print as 2.
+To resolve these issues, in wmawk2 version 2.4 these functions are now calculated 
+internally and all have “best in class” errors (0.500ulp). This should mean that a program 
+written in wmawk2 (using version 2.4 or above) will give exactly the same results
+independent of the operating-system, use of virtualization, or processor manufacturer.
+
+Version 2.4 also uses the latest versions of “atof” (1v2) and “ya-sprintf” (2v6) and was compiled with gcc 16.2.0 (which generates an wmawk2 executable that on average runs the same speed as gcc 15.3.0).
 
