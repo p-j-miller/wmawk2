@@ -59,11 +59,14 @@ print_version(void)
 #ifdef __UNICODE_H
  	printf(" Built with Unicode (utf8) support enabled for command line, environment variables, filenames and system/pipe commands\n");
 #endif 
+#ifdef USE_CR_MATHS_FUNS
+	printf(" Built to use (very accurate) cr_xxx maths functions for power(^),sqrt,log,exp,sin,cos,atan2\n");
+#endif
 #if defined(__VERSION__) && defined( __GNUC__)
     printf(" Compiled with gnuc version %s ",__VERSION__);
 #ifdef __MINGW64__
 	printf(" for Windows 64\n");
-#elif define __MINGW32__
+#elif defined(__MINGW32__)
 	printf(" for Windows 32\n");
 #endif
   // _WIN32, _WIN64 and __MSVCRT__ are also defined by gcc */			

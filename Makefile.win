@@ -5,14 +5,14 @@ CPP      = g++.exe
 CC       = gcc.exe
 WINDRES  = windres.exe
 RES      = wmawk2_private.res
-OBJ      = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o rand.o unicode.o ../atof-and-ftoa/atof.o ../double-double/double-double.o ../u2_64-128bits-with-two-u64/u2_64.o ../ya-sprintf/ya-sprintf.o ../ya-sprintf/ya-dconvert.o ../nan_type/nan_type.o $(RES)
-LINKOBJ  = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o rand.o unicode.o ../atof-and-ftoa/atof.o ../double-double/double-double.o ../u2_64-128bits-with-two-u64/u2_64.o ../ya-sprintf/ya-sprintf.o ../ya-sprintf/ya-dconvert.o ../nan_type/nan_type.o $(RES)
-LIBS     = -L"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/lib" -L"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/x86_64-w64-mingw32/lib" -static-libgcc -lquadmath -static -m64
-INCS     = -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/x86_64-w64-mingw32/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include"
-CXXINCS  = -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/x86_64-w64-mingw32/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-15.2.0-mingw-w64ucrt-13.0.0-r2/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include"
+OBJ      = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o rand.o unicode.o ../atof-and-ftoa/atof.o ../u2_64-128bits-with-two-u64/u2_64.o ../ya-sprintf/ya-sprintf.o ../ya-sprintf/ya-dconvert.o ../nan_type/nan_type.o ../ya_crmath_lib/cr_atan2.o ../ya_crmath_lib/cr_cos.o ../ya_crmath_lib/cr_exp.o ../ya_crmath_lib/cr_log.o ../ya_crmath_lib/cr_pow.o ../ya_crmath_lib/cr_sin.o ../ya_crmath_lib/cr_sqrt.o $(RES)
+LINKOBJ  = array.o bi_funct.o bi_vars.o cast.o code.o da.o error.o execute.o fcall.o field.o files.o fin.o hash.o init.o int.o jmp.o kw.o main.o memory.o parse.o print.o printf.o re_cmpl.o scan.o scancode.o split.o version.o zmalloc.o rexp/rexp.o rexp/rexp0.o rexp/rexp1.o rexp/rexp2.o rexp/rexp3.o rexp/rexpdb.o rexp/wait.o rand.o unicode.o ../atof-and-ftoa/atof.o ../u2_64-128bits-with-two-u64/u2_64.o ../ya-sprintf/ya-sprintf.o ../ya-sprintf/ya-dconvert.o ../nan_type/nan_type.o ../ya_crmath_lib/cr_atan2.o ../ya_crmath_lib/cr_cos.o ../ya_crmath_lib/cr_exp.o ../ya_crmath_lib/cr_log.o ../ya_crmath_lib/cr_pow.o ../ya_crmath_lib/cr_sin.o ../ya_crmath_lib/cr_sqrt.o $(RES)
+LIBS     = -L"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/lib" -L"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/x86_64-w64-mingw32/lib" -static-libgcc -lquadmath -static -m64
+INCS     = -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/x86_64-w64-mingw32/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/lib/gcc/x86_64-w64-mingw32/16.2.0/include"
+CXXINCS  = -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/x86_64-w64-mingw32/include" -I"C:/winlibs/winlibs-x86_64-posix-seh-gcc-16.2.0-mingw-w64ucrt-14.0.0-r1/mingw64/lib/gcc/x86_64-w64-mingw32/16.2.0/include"
 BIN      = wmawk2.exe
-CXXFLAGS = $(CXXINCS) -Ofast -m64 -std=c99 -Wall
-CFLAGS   = $(INCS) -Ofast -m64 -std=c99 -Wall -DMAWK  -msse4.2 -DNDEBUG
+CXXFLAGS = $(CXXINCS) -Ofast -m64 -std=gnu99 -Wall
+CFLAGS   = $(INCS) -Ofast -m64 -std=gnu99 -Wall -DMAWK  -msse4.2 -mfpmath=sse -O3 -DNDEBUG
 DEL      = C:\Program Files (x86)\Embarcadero\Dev-Cpp\devcpp.exe INTERNAL_DEL
 
 .PHONY: all all-before all-after clean clean-custom
@@ -139,9 +139,6 @@ unicode.o: unicode.c
 ../atof-and-ftoa/atof.o: ../atof-and-ftoa/atof.c
 	$(CC) -c ../atof-and-ftoa/atof.c -o ../atof-and-ftoa/atof.o $(CFLAGS)
 
-../double-double/double-double.o: ../double-double/double-double.c
-	$(CC) -c ../double-double/double-double.c -o ../double-double/double-double.o $(CFLAGS)
-
 ../u2_64-128bits-with-two-u64/u2_64.o: ../u2_64-128bits-with-two-u64/u2_64.c
 	$(CC) -c ../u2_64-128bits-with-two-u64/u2_64.c -o ../u2_64-128bits-with-two-u64/u2_64.o $(CFLAGS)
 
@@ -153,6 +150,27 @@ unicode.o: unicode.c
 
 ../nan_type/nan_type.o: ../nan_type/nan_type.c
 	$(CC) -c ../nan_type/nan_type.c -o ../nan_type/nan_type.o $(CFLAGS)
+
+../ya_crmath_lib/cr_atan2.o: ../ya_crmath_lib/cr_atan2.c
+	$(CC) -c ../ya_crmath_lib/cr_atan2.c -o ../ya_crmath_lib/cr_atan2.o $(CFLAGS)
+
+../ya_crmath_lib/cr_cos.o: ../ya_crmath_lib/cr_cos.c
+	$(CC) -c ../ya_crmath_lib/cr_cos.c -o ../ya_crmath_lib/cr_cos.o $(CFLAGS)
+
+../ya_crmath_lib/cr_exp.o: ../ya_crmath_lib/cr_exp.c
+	$(CC) -c ../ya_crmath_lib/cr_exp.c -o ../ya_crmath_lib/cr_exp.o $(CFLAGS)
+
+../ya_crmath_lib/cr_log.o: ../ya_crmath_lib/cr_log.c
+	$(CC) -c ../ya_crmath_lib/cr_log.c -o ../ya_crmath_lib/cr_log.o $(CFLAGS)
+
+../ya_crmath_lib/cr_pow.o: ../ya_crmath_lib/cr_pow.c
+	$(CC) -c ../ya_crmath_lib/cr_pow.c -o ../ya_crmath_lib/cr_pow.o $(CFLAGS)
+
+../ya_crmath_lib/cr_sin.o: ../ya_crmath_lib/cr_sin.c
+	$(CC) -c ../ya_crmath_lib/cr_sin.c -o ../ya_crmath_lib/cr_sin.o $(CFLAGS)
+
+../ya_crmath_lib/cr_sqrt.o: ../ya_crmath_lib/cr_sqrt.c
+	$(CC) -c ../ya_crmath_lib/cr_sqrt.c -o ../ya_crmath_lib/cr_sqrt.o $(CFLAGS)
 
 wmawk2_private.res: wmawk2_private.rc 
 	$(WINDRES) -i wmawk2_private.rc --input-format=rc -o wmawk2_private.res -O coff 

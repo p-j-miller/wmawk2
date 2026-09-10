@@ -26,6 +26,13 @@ you agree to not name that product mawk.
 #include "repl.h"
 #include "fin.h"
 #include <math.h>
+#include "config.h" /* Added Peter Miller 4/9/2026 */
+
+#ifdef USE_CR_MATHS_FUNS /* Added Peter Miller 4/9/2026 */
+ #define YA_CRMATH_LIB_REPLACE  /* specify we want to replace standard C functions */
+ #include "../ya_crmath_lib/ya_crmath.h" /* for cc_xxx maths functions */
+#endif 
+
 
 static int compare(CELL *) ;
 static int d_to_index(double) ;
@@ -623,7 +630,7 @@ execute(
 	    CHECK_DIVZERO(sp->dval) ;
 #endif
 
-	    tc.dval = fmod(tc.dval, sp--->dval) ;
+	    tc.dval = fmod(tc.dval, sp-- ->dval) ;
 	    sp->type = C_DOUBLE ;
 	    sp->dval = tc.dval ;
 	    field_assign(cp, &tc) ;
@@ -633,7 +640,7 @@ execute(
 	    if (sp->type != C_DOUBLE)  cast1_to_d(sp) ;
 	    cp = (CELL *) (sp - 1)->ptr ;
 	    cast1_to_d(cellcpy(&tc, cp)) ;
-	    tc.dval = pow(tc.dval, sp--->dval) ;
+	    tc.dval = pow(tc.dval, sp-- ->dval) ;
 	    sp->type = C_DOUBLE ;
 	    sp->dval = tc.dval ;
 	    field_assign(cp, &tc) ;

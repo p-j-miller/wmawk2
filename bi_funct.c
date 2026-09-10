@@ -37,6 +37,11 @@ you agree to not name that product mawk.
 #include  "Windows.h" 
 #endif
 
+#ifdef USE_CR_MATHS_FUNS /* Added Peter Miller 4/9/2026 */
+ #define YA_CRMATH_LIB_REPLACE  /* specify we want to replace standard C functions */
+ #include "../ya_crmath_lib/ya_crmath.h" /* for cc_xxx maths functions */
+#endif 
+
 #if defined(__cplusplus)
 #define THROW__ throw()
 #else

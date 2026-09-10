@@ -28,9 +28,15 @@
  version 2.3
 	- use latest version of ya_sprintf (2v5)	
 	
+version 2v4
+	- optionally uses cr_xxx maths functions ("correct rounding" - which are very accurate and don't depend on compiler/OS/processor type (Intel/AMD) ).
+	 These are used for power(^),sqrt,log,exp,sin,cos,atan2 functions.
+	- Also uses latest atof and sprintf/ya_dconvert functions.
+	
  */
-#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.3 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
+#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.4 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
 
+#define USE_CR_MATHS_FUNS /* if defined use cr_xxx maths functions - should give bitwise exact results whatever compier/OS/processor type is used, but might be a little slower than default functions. Used for power(**),sqrt,log,exp,sin,cos,atan2 */
 
 #define USE_FAST_STRTOD /* if defined use fast strtod rather than very slow version built into TDM-GCC */
 
