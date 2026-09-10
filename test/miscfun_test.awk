@@ -20,8 +20,20 @@
 	# SOFTWARE.	
 #
 BEGIN{
-	  CONVFMT="%.10g" # change from default (%.6g) as we use casting of number to string to avoid issues with very small differences. We also use steps of 0.0078125 which caused issues with %.6g due to the final 5 making the default rounding ineffective in some cases
+	  CONVFMT="%.12g" # change from default (%.6g) as we use casting of number to string to avoid issues with very small differences. %.12g is the largest possible without giving errors
 		# as a useful side effect also checks CONVFMT keyword
+		# we print values to file (via stdout) as %.20g and then do a charcater by character comparison in the batch file so we do check results are bitwise identical
+		
+		# Without using the cr_xxx functions there are issues, in particular the issue occurs with x=0.7421875 and gcc 16.2.0 using the "winlib" port
+		# gcc -m32 gives:
+		 #wmawk2 "BEGIN{x=0.7421875;printf(\"%.20g %.20g %.20g %.20g\n\",x,sin(x),cos(x),x-atan2(sin(x),cos(x)))}"
+		 # 0.7421875 0.67590169702617886 0.736991788256240787 0
+	   # while gcc -m64 gives:
+	    #wmawk2 "BEGIN{x=0.7421875;printf(\"%.20g %.20g %.20g %.20g\n\",x,sin(x),cos(x),x-atan2(sin(x),cos(x)))}"
+	    #0.7421875 0.675901697026178749 0.736991788256240787 1.11022302462515654e-16
+		# so without using the cr_xxx functions, the 64 bit compiler introduces a 1 bit error (in sin(x) )which is not present with the 32 bit compiler! (printing the difference from x shows this is real and not an issue with printing floating point values)
+		# with the cr_xxx functions, both give the same result (zero error as -m32 above).
+		
 	  # Start with atan2(y,x)=arctan of y/x between -pi and +pi
 	  # we known arctan(1)+arctan(2)+arctan(3) should equal pi - https://en.wikipedia.org/wiki/List_of_trigonometric_identities
 	  print "Checking arctan(1)+arctan(2)+arctan(3) equals pi:"
@@ -41,7 +53,8 @@ BEGIN{
 		 if(cos_x==0) continue # avoids 1/0 in code below
 		 atan2_x=atan2(sin_x,cos_x)
 		 if(atan2_x<0) atan2_x=2*api+atan2_x
-		 printf(" %g: sin(%g)=%g cos(%g)=%g sin^2+cos^2=%g atan(tan(x))=%g\n",x,x,sin_x,x,cos_x,sin_x*sin_x+cos_x*cos_x,atan2_x)
+		 #printf(" %g: sin(%g)=%g cos(%g)=%g sin^2+cos^2=%g atan(tan(x))=%g\n",x,x,sin_x,x,cos_x,sin_x*sin_x+cos_x*cos_x,atan2_x)
+		 printf(" %.20g: sin(%.20g)=%.20g cos(%.20g)=%.20g sin^2+cos^2=%.20g atan(tan(x))=%.20g\n",x,x,sin_x,x,cos_x,sin_x*sin_x+cos_x*cos_x,atan2_x)
 		 if((sin_x*sin_x+cos_x*cos_x) "" !="1") 
 			{++errs # cast to string as checking as double precision might show up very small differences
 			 printf("  error: sin^2+cos^2=%g at x=%g\n",sin_x*sin_x+cos_x*cos_x,x)
@@ -59,13 +72,28 @@ BEGIN{
 		{
 		 sin_atan=sin(atan2(x,1))
 		 x_sqrt=x/sqrt(1+x*x)
-		 printf(" x=%g: sin(arctan(x))=%g x/sqrt(1+x^2)=%g\n",x,sin_atan,x_sqrt)
+		 printf(" x=%g: sin(arctan(x))=%.20g x/sqrt(1+x^2)=%.20g\n",x,sin_atan,x_sqrt)
 		 if((sin_atan "") != (x_sqrt "")) 
 			{++errs # cast to string as checking as double precision might show up very small differences
-			 printf("  error %d: %s != %s\n",errs,(sin_atan ""),(x_sqrt ""))
+			 printf("  error %d: x=%g %s != %s\n",errs,x,(sin_atan ""),(x_sqrt ""))
 			}
 		}
 	  printf("%d errors so far\n",errs)
+	  
+	  # now check power (^) using ^0.5 and comparing to sqrt
+	  print "Checking x^0.5=sqrt(x):"
+	  for(x=0;x<100;x+=0.125)
+		{
+		 x_pow_0p5=x^0.5
+		 x_sqrt=sqrt(x)
+		 printf(" x=%g: x^0.5=%.20g sqrt(x)=%.20g\n",x,x_pow_0p5,x_sqrt)
+		 if((x_pow_0p5 "") != (x_sqrt "")) 
+			{++errs # cast to string as checking as double precision might show up very small differences
+			 printf("  error %d: x=%g %s != %s\n",errs,x,(x_pow_0p5 ""),(x_sqrt ""))
+			}
+		}
+	  printf("%d errors so far\n",errs)
+	  
 	  # now check random number generator
 	  srand(5) # force to start at the same value every time
 	  avg_count=1000000
@@ -96,8 +124,11 @@ BEGIN{
 	  for(x=1;x<=16;x+=0.25)
 		{e_l=exp(0.5*log(x))
 		 s=sqrt(x)
-		 printf(" x=%g: exp(0.5*ln(x))=%g sqrt(x)=%g\n",x,e_l,s)
-		 if(e_l "" != s "") ++errs
+		 printf(" x=%g: exp(0.5*ln(x))=%.20g sqrt(x)=%.20g\n",x,e_l,s)
+		 if(e_l "" != s "") 
+			{++errs
+			 printf("  error %d: x=%g %s != %s\n",errs,x,(e_l ""),( s ""))
+			}
 		}
 	  # index, tolower,toupper and fflush to go...
 	  Print "Testing index() function"
