@@ -301,6 +301,9 @@ int main()
   #ifdef __AVX2__
   if(!__builtin_cpu_supports("avx2")) {fputs(" Error: AVX2 required but not available\n",stderr); exit(1);}
  #endif
+  #ifdef __FMA__
+  if(!__builtin_cpu_supports("fma")) {fputs(" Error: FMA required but not available\n",stderr); exit(1);}
+ #endif 
 #else
  #pragma message( "__builtin_cpu_supports() NOT available for runtime processor capability detection")
 #endif

@@ -14,6 +14,9 @@ you agree to not name that product mawk.
 ********************************************/
 
 #include "config.h"	/* needed to resolve intersystem conflicts on C and C++ declarations of random() and srandom() */
+#if ! STDC_MATHERR /* set in cpnfig.h */
+ #pragma GCC optimize ("no-math-errno") /* if not using MATHERR tell compiler as it can speed up some functions by not setting errno */
+#endif
 
 #include "mawk.h"
 #include "bi_funct.h"

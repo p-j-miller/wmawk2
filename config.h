@@ -33,8 +33,13 @@ version 2v4
 	 These are used for power(^),sqrt,log,exp,sin,cos,atan2 functions.
 	- Also uses latest atof and sprintf/ya_dconvert functions.
 	
+version 2v5 
+	- added STDC_MATHERR to this file (was previously missing)
+	- improved cr_math_lib handling of sqrt - use internal function where its accurate (as this is  faster - 20secs vs 25 secs for first step of test-sqrt.awk) 
+
+	
  */
-#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.4 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
+#define MAWK_EXTRA_VERSION_INFO "Windows Github Version 2.5 x64 by Peter Miller" /* define for additional text in --version. Date/time built, compiler used etc will be added when compiled */
 
 #define USE_CR_MATHS_FUNS /* if defined use cr_xxx maths functions - should give bitwise exact results whatever compier/OS/processor type is used, but might be a little slower than default functions. Used for power(**),sqrt,log,exp,sin,cos,atan2 */
 
@@ -115,3 +120,6 @@ double fast_strtod(const char *s,char ** endptr); /* in atof.c */
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
+
+/* define to 1 to use errno [ not recommended! ]  - only used in bi_funct.c */
+#define STDC_MATHERR 0

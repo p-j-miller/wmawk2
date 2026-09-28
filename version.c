@@ -70,7 +70,27 @@ print_version(void)
 	printf(" for Windows 32\n");
 #endif
   // _WIN32, _WIN64 and __MSVCRT__ are also defined by gcc */			
-#endif   
+#endif  
+#if defined(__SSE2__) && defined(__AVX2__) && defined(__FMA__)
+	printf("  Compiled to require SSE2, AVX2 and FMA\n");
+#elif defined(__SSE2__) && defined(__AVX2__) 
+	printf("  Compiled to require SSE2, AVX2\n");
+#elif defined(__SSE2__) 
+	printf("  Compiled to require SSE2\n");
+#endif
+#if 0 
+	#ifdef STDC_MATHERR
+	  printf("STDC_MATHERR is defined and has value %d\n",STDC_MATHERR);
+	#else
+	  printf("STDC_MATHERR is not defined\n");
+	#endif
+	#if  !	STDC_MATHERR
+	  printf("#if  !	STDC_MATHERR  is true\n");
+	#endif
+	#if  STDC_MATHERR
+	  printf("#if STDC_MATHERR  is true\n");
+	#endif
+#endif
 #if 1
 // runtime tests
 #if defined(__has_builtin) && __has_builtin(__builtin_cpu_supports)
@@ -82,6 +102,7 @@ print_version(void)
  if(__builtin_cpu_supports("sse4.2")) puts(" sse4.2");
  if(__builtin_cpu_supports("avx")) puts(" avx");
  if(__builtin_cpu_supports("avx2")) puts(" avx2");
+ if(__builtin_cpu_supports("fma")) puts(" fma");
  puts("");// prints newline (puts always adds newline)
 #else
  puts("Runtime processor capability detection not available");
