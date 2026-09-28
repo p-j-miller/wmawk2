@@ -1,6 +1,7 @@
 # test of misc functions not covered in other tests
 # Created by Peter Miller 24-5-2026
-	# this version for use in wmawk2test.bat only checks values that should be accurate between wmawk2 versions
+	# this version 26/9/2026  for use in wmawk2test.bat checks values to full resolution via "prints" and maximum possible resolution without causing false errors internally. It therefore only passes when "cr_xxx" maths functions are used.
+	# it also adds timing for sqrt(),log(),exp(),^,sin,cos and atan2 functions (both making their contribution to the total "significant" and giving ns/call values to the screen). 
 	
 	# Copyright (c) 2026 Peter Miller
 	# Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -18,9 +19,40 @@
 	# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 	# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 	# SOFTWARE.	
+	
+# example results on i3-10100
+# -m32
+# testing misc functions not already tested
+#  Timing for maths functions:
+#   Baseline - no function in loop : sum=3290235273891.77832 time=4.75 secs
+#   sqrt(x): sum=27452696229.5771446 time for sqrt=0.71 secs (2.8 ns/call)
+#   log(x): sum=2357302309.59457541 time for log()=2.71 secs (10.5 ns/call)
+#   exp(x): sum=5.85918444506039478e+289 time for exp()=3.67 secs (13.9 ns/call)
+#   power(x,0.5): sum=2255391705.90056992 time for power()=8.87 secs (67.1 ns/call)
+#   sin() & cos() sum=-161698.767145868536 time for sin+cos=12.13 secs (18.8 ns/call to either sin() or cos())
+#   atan2() sum=-7.09651165427377961 time=9.33 secs (28.9 ns/call)
+#  misc functions test finished in 83.05 secs , 0 errors found
+#  test of misc functions not already tested passed
+# 
+# 
+# -m64
+# testing misc functions not already tested
+#  Timing for maths functions:
+#   Baseline - no function in loop : sum=3290235273891.77832 time=5.35 secs
+#   sqrt(x): sum=27452696229.5771446 time for sqrt=0.76 secs (3.0 ns/call)
+#   log(x): sum=2357302309.59457541 time for log()=1.71 secs (6.6 ns/call)
+#   exp(x): sum=5.85918444506039478e+289 time for exp()=1.39 secs (5.3 ns/call)
+#   power(x,0.5): sum=2255391705.90056992 time for power()=3.69 secs (27.9 ns/call)
+#   sin() & cos() sum=-161698.767145868536 time for sin+cos=9.51 secs (14.7 ns/call to either sin() or cos())
+#   atan2() sum=-7.09651165427377961 time=6.94 secs (21.5 ns/call)
+#  misc functions test finished in 71.25 secs , 0 errors found
+#  test of misc functions not already tested passed
+# 
+# 
 #
 BEGIN{
-	  CONVFMT="%.12g" # change from default (%.6g) as we use casting of number to string to avoid issues with very small differences. %.12g is the largest possible without giving errors
+	   CONVFMT="%.12g" # change from default (%.6g) as we use casting of number to string to avoid issues with very small differences. %.12g is the largest possible without giving errors
+	   start_test=systime(1)
 		# as a useful side effect also checks CONVFMT keyword
 		# we print values to file (via stdout) as %.20g and then do a charcater by character comparison in the batch file so we do check results are bitwise identical
 		
@@ -178,8 +210,108 @@ BEGIN{
 		{++errs
 		 printf("Error: close() did not return 0 - returned %d\n",r)
 		}
+	 
+	  # now do some timing (results just to stderr, whole scripts timing is captured in total time
+	  # Blank loop() (baseline) - assume time per loop is constant when scaling to other values of xstart, xend, xinc
+	  printf(" Timing for maths functions:\n") >"/dev/stderr"
+	  ysum=0
+	  xstart=0 # for loop
+	  xend=25536.5
+	  xstep=1.0/10091.0 #  1009, 10091 & 100907 are prime
+	  startt=systime(1)	  
+	  for(x=xstart;x<xend;x+=xstep) 
+		{ysum+=(x)
+		}
+	  endt=systime(1)
+	  baseline_time=endt-startt
+	  printf("  Baseline - no function in loop : sum=%.20g time=%.2f secs\n",ysum,baseline_time)>"/dev/stderr"
+
+	  
+	  # sqrt()
+	  ysum=0
+	  # xstart,xend,xstep must be same as blank loop above
+	  startt=systime(1)	  
+	  for(x=xstart;x<xend;x+=xstep) 
+		{ysum+=sqrt(x)
+		}
+	  endt=systime(1)
+	  total_fun_time=(endt-startt)-baseline_time
+	  time_per_call_ns= 1e9*total_fun_time/((xend-xstart)/xstep)
+	  printf("  sqrt(x): sum=%.20g time for sqrt=%.2f secs (%.1f ns/call)\n",ysum, total_fun_time,time_per_call_ns)>"/dev/stderr"
+	 # setup ready for scaling   baseline_time
+	 baseline_time=baseline_time/((xend-xstart)/xstep) # time for 1 "blank" iteration
+	 
+	  # log()
+	  ysum=0
+	  xstart=1.0/10091.0 # for loop
+	  xend=25536.5
+	  xstep=1.0/10091.0 # 1009, 10091 & 100907 are prime	  
+	  startt=systime(1)	  
+	  for(x=xstart;x<xend;x+=xstep) 
+		{ysum+=log(x)
+		}
+	  endt=systime(1)
+	  total_fun_time=(endt-startt)-baseline_time*(xend-xstart)/xstep  # correct using scaled baseline_time
+	  time_per_call_ns= 1e9*total_fun_time/((xend-xstart)/xstep)  
+	  printf("  log(x): sum=%.20g time for log()=%.2f secs (%.1f ns/call)\n",ysum,total_fun_time,time_per_call_ns)>"/dev/stderr"	
+	  
+	  # exp()
+	  ysum=0
+	  xstart=-655 # for loop
+	  xend=655
+	  xstep=0.5/100907 # 1009, 10091 & 100907 are prime		  
+	  startt=systime(1)	  
+	  for(x=xstart;x<xend;x+=xstep) 
+		{ysum+=exp(x)
+		}
+	  endt=systime(1)
+	  total_fun_time=(endt-startt)-baseline_time*(xend-xstart)/xstep  # correct using scaled baseline_time
+	  time_per_call_ns= 1e9*total_fun_time/((xend-xstart)/xstep)    
+	  printf("  exp(x): sum=%.20g time for exp()=%.2f secs (%.1f ns/call)\n",ysum,total_fun_time,time_per_call_ns )>"/dev/stderr"	 
+	  
+	  # power(x,0.5)
+	  ysum=0
+	  xstart=0 # for loop
+	  xend=655
+	  xstep=0.5/100907 # 1009, 10091 & 100907 are prime		  
+	  startt=systime(1)	  
+	  for(x=xstart;x<xend;x+=xstep) 
+		{ysum+=x^0.5
+		}
+	  endt=systime(1)	  
+	  total_fun_time=(endt-startt)-baseline_time*(xend-xstart)/xstep  # correct using scaled baseline_time
+	  time_per_call_ns= 1e9*total_fun_time/((xend-xstart)/xstep)      
+	  printf("  power(x,0.5): sum=%.20g time for power()=%.2f secs (%.1f ns/call)\n",ysum,total_fun_time,time_per_call_ns )>"/dev/stderr"
+	  
+	  # Next calculate reference time for sin,cos which are used as args to atan2() [ don't do separate tests for sin() & cos() as we need this one for atan2() and doing separate ones for sin() & cos() as well would bias the total time towards sin/cos as they would be counted twice]
+	  ysum=0
+	  xstart=-1600 # for loop
+	  xend=1600
+	  xstep=1/100907 # 1009, 10091 & 100907 are prime		  
+	  startt_ref=systime(1)	  
+	  for(x=xstart;x<xend;x+=xstep) 
+		{ysum+=sin(x)+cos(x)
+		}
+	  endt_ref=systime(1)	
+	  total_fun_time=(endt_ref-ref-startt_ref)-baseline_time*(xend-xstart)/xstep  # correct using scaled baseline_time . Note time calculation is different as this is also used as baseline for atan2() which is next  
+	  time_per_call_ns= 1e9*total_fun_time/((xend-xstart)/xstep)     # time for sin()x)+cos(x) 
+	  printf("  sin() & cos() sum=%.20g time for sin+cos=%.2f secs (%.1f ns/call to either sin() or cos())\n",ysum,total_fun_time,time_per_call_ns/2.0 )>"/dev/stderr"	  # assumes time for sin and cos are equal (and time for "+" is very small) so divide time_per_call_ns by 2 
+	  
+	  # atan2(sin(x),cos(x)) proper, we subtract time of above loop so here we do really just time the atan2() function
+	  ysum=0
+	  # xstart,xend,xstep must be same as sin/cos above
+	  startt=systime(1)	  
+	  for(x=xstart;x<xend;x+=xstep) 
+		{ysum+=atan2(sin(x),cos(x))
+		}
+	  endt=systime(1)	
+	  total_fun_time=(endt-startt)-(endt_ref-startt_ref)  # correct using time for sin/cos .   
+	  time_per_call_ns= 1e9*total_fun_time/((xend-xstart)/xstep)       	  
+	  printf("  atan2() sum=%.20g time=%.2f secs (%.1f ns/call)\n",ysum,total_fun_time,time_per_call_ns )>"/dev/stderr"	  
+	  
 	  printf(" misc functions test finished %d errors found\n",errs)
-	  printf(" misc functions test finished %d errors found\n",errs) >"/dev/stderr"
+	  printf(" misc functions test finished in %.2f secs , %d errors found\n", systime(1)-start_test,errs) >"/dev/stderr"
+	  
 	  if(errs>0) exit(1)
 	  else exit(0)
 	}
