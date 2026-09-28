@@ -122,3 +122,17 @@ independent of the operating-system, use of virtualization, or processor manufac
 
 Version 2.4 also uses the latest versions of “atof” (1v2) and “ya-sprintf” (2v6) and was compiled with gcc 16.2.0 (which generates an wmawk2 executable that on average runs the same speed as gcc 15.3.0).
 
+Version 2.5 changes the minimum processor requirements for the supplied executable to 
+AVX2 and FMA running in 64-bit mode as these can provide a reasonable speed increase 
+with some awk scripts. These functions were introduced with Intel Haswell processors in 
+2013 (e.g. i3-4130) and AMD Excavator processors in 2015. The source code can still be 
+compiled for 32-bit mode and for processors without these instructions. Wmakw2 will 
+check when executed that the processor its running on supports the functionality specified 
+at compile time and will abort if this functionality is not present. 
+
+Version 2.5 also uses ya_crmath_lib 1v1 which is faster than 1v0, while providing identical 
+results. The test program has also been updated to provide timing details for the 
+exp(),log(),sin(),cos() and atan2() functions and the power operator(^), giving the 
+estimated time per call in ns (with an i3-10100 processor sqrt is ~3ns and the power 
+operator ~ 30ns). On an Intel i3-10100 the execution time for the complete test program 
+with Wmawk2 2v5 is 225 seconds while with 2v4 its 268 seconds.
